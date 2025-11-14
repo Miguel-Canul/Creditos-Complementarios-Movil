@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'screens/login_screen.dart';
-import 'screens/lista_asistencias_screen.dart';
 import 'screens/estudiante_dashboard_screen.dart';
 import 'services/api_service.dart';
 import 'services/auth_service.dart';
@@ -21,6 +20,8 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
@@ -44,7 +45,7 @@ class MyApp extends StatelessWidget {
               ErrorWidget.builder = (FlutterErrorDetails errorDetails) {
                 return Container(
                   color: Colors.red,
-                  child: Center(
+                  child: const Center(
                     child: Text(
                       'Error en la aplicación',
                       style: TextStyle(color: Colors.white),
@@ -73,9 +74,9 @@ class MyApp extends StatelessWidget {
 
   ThemeData _buildTheme(ConfiguracionService configService, bool isDark) {
     final brightness = isDark ? Brightness.dark : Brightness.light;
-    final primaryColor = Color(Constants.primaryColor);
-    final backgroundColor = isDark ? Color(0xFF121212) : Colors.white;
-    final surfaceColor = isDark ? Color(0xFF1E1E1E) : Colors.white;
+    const primaryColor = Color(Constants.primaryColor);
+    final backgroundColor = isDark ? const Color(0xFF121212) : Colors.white;
+    final surfaceColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
 
     // Tamaño de texto basado en configuración
     double textScaleFactor = 1.0;
@@ -99,16 +100,16 @@ class MyApp extends StatelessWidget {
       primarySwatch: MaterialColor(
         Constants.primaryColor,
         <int, Color>{
-          50: Color(0xFFE3F2FD),
-          100: Color(0xFFBBDEFB),
-          200: Color(0xFF90CAF9),
-          300: Color(0xFF64B5F6),
-          400: Color(0xFF42A5F5),
+          50: const Color(0xFFE3F2FD),
+          100: const Color(0xFFBBDEFB),
+          200: const Color(0xFF90CAF9),
+          300: const Color(0xFF64B5F6),
+          400: const Color(0xFF42A5F5),
           500: primaryColor,
-          600: Color(0xFF1E88E5),
-          700: Color(0xFF1976D2),
-          800: Color(0xFF1565C0),
-          900: Color(0xFF0D47A1),
+          600: const Color(0xFF1E88E5),
+          700: const Color(0xFF1976D2),
+          800: const Color(0xFF1565C0),
+          900: const Color(0xFF0D47A1),
         },
       ),
 
@@ -133,7 +134,7 @@ class MyApp extends StatelessWidget {
       // Card theme
       cardTheme: CardThemeData(
         elevation: 4,
-        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
@@ -145,14 +146,15 @@ class MyApp extends StatelessWidget {
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
         ),
-        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        fillColor: isDark ? Color(0xFF2C2C2C) : Colors.grey[50],
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        fillColor: isDark ? const Color(0xFF2C2C2C) : Colors.grey[50],
       ),
 
       // Button themes
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
           ),
@@ -173,7 +175,7 @@ class MyApp extends StatelessWidget {
       ),
 
       // FAB theme
-      floatingActionButtonTheme: FloatingActionButtonThemeData(
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
         backgroundColor: Color(Constants.successColor),
         foregroundColor: Colors.white,
       ),
@@ -183,8 +185,8 @@ class MyApp extends StatelessWidget {
 
       // Checkbox theme
       checkboxTheme: CheckboxThemeData(
-        fillColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        fillColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return primaryColor;
           }
           return null;
@@ -193,14 +195,14 @@ class MyApp extends StatelessWidget {
 
       // Switch theme
       switchTheme: SwitchThemeData(
-        thumbColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        thumbColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return primaryColor;
           }
           return null;
         }),
-        trackColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return primaryColor.withOpacity(0.5);
           }
           return null;
@@ -234,6 +236,8 @@ class MyApp extends StatelessWidget {
 
 // Widget wrapper para manejar la autenticación y navegación por rol
 class AuthWrapper extends StatefulWidget {
+  const AuthWrapper({super.key});
+
   @override
   _AuthWrapperState createState() => _AuthWrapperState();
 }
@@ -273,7 +277,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
   @override
   Widget build(BuildContext context) {
     if (!_isInitialized) {
-      return Scaffold(
+      return const Scaffold(
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -304,9 +308,6 @@ class _AuthWrapperState extends State<AuthWrapper> {
           switch (userRole) {
             case 'Estudiante':
               return EstudianteDashboardScreen();
-            case 'Encargado':
-            case 'Administrador':
-              return ListaAsistenciasScreen();
             default:
               return LoginScreen();
           }

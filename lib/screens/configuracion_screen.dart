@@ -5,15 +5,17 @@ import '../services/configuracion_service.dart';
 import '../utils/constants.dart';
 
 class ConfiguracionScreen extends StatefulWidget {
+  const ConfiguracionScreen({super.key});
+
   @override
   _ConfiguracionScreenState createState() => _ConfiguracionScreenState();
 }
 
-class _ConfiguracionScreenState extends State<ConfiguracionScreen> 
+class _ConfiguracionScreenState extends State<ConfiguracionScreen>
     with TickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
-  
+
   String userRole = '';
   bool _hasChanges = false;
 
@@ -21,10 +23,10 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
   void initState() {
     super.initState();
     _animationController = AnimationController(
-      duration: Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 500),
       vsync: this,
     );
-    
+
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -32,7 +34,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
       parent: _animationController,
       curve: Curves.easeInOut,
     ));
-    
+
     _obtenerRolUsuario();
     _animationController.forward();
   }
@@ -60,14 +62,14 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
   void _aplicarCambios() async {
     final configService = context.read<ConfiguracionService>();
     final success = await configService.aplicarConfiguracion();
-    
+
     if (success) {
       setState(() {
         _hasChanges = false;
       });
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Configuración aplicada correctamente'),
           backgroundColor: Color(Constants.successColor),
           behavior: SnackBarBehavior.floating,
@@ -75,7 +77,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Error al aplicar la configuración'),
           backgroundColor: Color(Constants.dangerColor),
           behavior: SnackBarBehavior.floating,
@@ -88,19 +90,20 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
     final confirmar = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Restablecer configuración'),
-        content: Text('¿Estás seguro de que deseas restablecer la configuración por defecto?'),
+        title: const Text('Restablecer configuración'),
+        content: const Text(
+            '¿Estás seguro de que deseas restablecer la configuración por defecto?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text('Cancelar'),
+            child: const Text('Cancelar'),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Color(Constants.dangerColor),
+              backgroundColor: const Color(Constants.dangerColor),
             ),
-            child: Text('Restablecer'),
+            child: const Text('Restablecer'),
           ),
         ],
       ),
@@ -109,13 +112,13 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
     if (confirmar == true) {
       final configService = context.read<ConfiguracionService>();
       await configService.resetearConfiguracion();
-      
+
       setState(() {
         _hasChanges = false;
       });
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Configuración restablecida por defecto'),
           backgroundColor: Color(Constants.successColor),
           behavior: SnackBarBehavior.floating,
@@ -127,14 +130,14 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xfff5f5f5),
+      backgroundColor: const Color(0xfff5f5f5),
       appBar: AppBar(
-        title: Text('Configuración'),
-        backgroundColor: Color(Constants.primaryColor),
+        title: const Text('Configuración'),
+        backgroundColor: const Color(Constants.primaryColor),
         foregroundColor: Colors.white,
         elevation: 2,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: Colors.white),
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -144,27 +147,27 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
           children: [
             // Header con información del usuario
             _buildUserHeader(),
-            
+
             // Contenido scrolleable
             Expanded(
               child: SingleChildScrollView(
-                padding: EdgeInsets.all(16),
+                padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
                     // Configuración por rol
-                    if (userRole == 'Estudiante') 
+                    if (userRole == 'Estudiante')
                       _buildConfiguracionEstudiante(),
-                    if (userRole == 'Encargado') 
-                      _buildConfiguracionEncargado(),
-                    if (userRole == 'Administrador') 
+                    if (userRole == 'Encargado') _buildConfiguracionEncargado(),
+                    if (userRole == 'Administrador')
                       _buildConfiguracionAdministrador(),
-                    
-                    SizedBox(height: 24),
-                    
+
+                    const SizedBox(height: 24),
+
                     // Información adicional
                     _buildInformacionAdicional(),
-                    
-                    SizedBox(height: 100), // Espacio para el botón flotante
+
+                    const SizedBox(
+                        height: 100), // Espacio para el botón flotante
                   ],
                 ),
               ),
@@ -172,7 +175,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
           ],
         ),
       ),
-      
+
       // Botones de acción como FAB
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
@@ -180,21 +183,19 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
           if (_hasChanges)
             FloatingActionButton.extended(
               onPressed: _aplicarCambios,
-              backgroundColor: Color(Constants.primaryColor),
+              backgroundColor: const Color(Constants.primaryColor),
               foregroundColor: Colors.white,
-              icon: Icon(Icons.check),
-              label: Text('Aplicar cambios'),
+              icon: const Icon(Icons.check),
+              label: const Text('Aplicar cambios'),
               heroTag: "aplicar",
             ),
-          
-          SizedBox(height: 12),
-          
+          const SizedBox(height: 12),
           FloatingActionButton(
             onPressed: _resetearConfiguracion,
-            backgroundColor: Color(Constants.dangerColor),
+            backgroundColor: const Color(Constants.dangerColor),
             foregroundColor: Colors.white,
-            child: Icon(Icons.refresh),
             heroTag: "reset",
+            child: Icon(Icons.refresh),
           ),
         ],
       ),
@@ -204,14 +205,14 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
   Widget _buildUserHeader() {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(20),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Color(Constants.primaryColor),
-            Color(Constants.primaryColor).withOpacity(0.8),
+            const Color(Constants.primaryColor),
+            const Color(Constants.primaryColor).withOpacity(0.8),
           ],
         ),
       ),
@@ -227,47 +228,45 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(25),
                     child: Image.asset(
-                      userRole == 'Estudiante' 
-                        ? 'assets/images/estudiante-avatar.png'
-                        : userRole == 'Encargado'
-                          ? 'assets/images/encargado-avatar.png'
-                          : 'assets/images/admin-avatar.png',
+                      userRole == 'Estudiante'
+                          ? 'assets/images/estudiante-avatar.png'
+                          : userRole == 'Encargado'
+                              ? 'assets/images/encargado-avatar.png'
+                              : 'assets/images/admin-avatar.png',
                       width: 50,
                       height: 50,
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
-                        return Icon(
-                          Icons.person, 
-                          size: 30, 
-                          color: Color(Constants.primaryColor)
-                        );
+                        return const Icon(Icons.person,
+                            size: 30, color: Color(Constants.primaryColor));
                       },
                     ),
                   ),
                 ),
-                SizedBox(width: 16),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         authService.userName ?? 'Usuario',
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Container(
-                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
                           authService.userRole ?? 'Usuario',
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
@@ -277,7 +276,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
                     ],
                   ),
                 ),
-                Icon(
+                const Icon(
                   Icons.settings,
                   color: Colors.white,
                   size: 24,
@@ -316,7 +315,8 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
                   'Mostrar actividades en formato de cuadrícula',
                   configService.configuracionEstudiante.vistaCuadricula,
                   (value) {
-                    configService.configuracionEstudiante.vistaCuadricula = value;
+                    configService.configuracionEstudiante.vistaCuadricula =
+                        value;
                     _onConfiguracionChange();
                   },
                 ),
@@ -325,15 +325,16 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
                   'Incluir actividades ya completadas',
                   configService.configuracionEstudiante.mostrarCompletadas,
                   (value) {
-                    configService.configuracionEstudiante.mostrarCompletadas = value;
+                    configService.configuracionEstudiante.mostrarCompletadas =
+                        value;
                     _onConfiguracionChange();
                   },
                 ),
               ],
             ),
-            
-            SizedBox(height: 16),
-            
+
+            const SizedBox(height: 16),
+
             // Accesibilidad
             _buildSeccionConfiguracion(
               titulo: 'Accesibilidad',
@@ -353,9 +354,9 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
                 ),
               ],
             ),
-            
-            SizedBox(height: 16),
-            
+
+            const SizedBox(height: 16),
+
             // Configuraciones de Lista
             _buildSeccionConfiguracion(
               titulo: 'Lista de Actividades',
@@ -364,10 +365,12 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
                 _buildSelectItem(
                   'Actividades por página',
                   'Cantidad de actividades mostradas por página',
-                  configService.configuracionEstudiante.actividadesPorPagina.toString(),
+                  configService.configuracionEstudiante.actividadesPorPagina
+                      .toString(),
                   ['5', '10', '15', '20', '25'],
                   (value) {
-                    configService.configuracionEstudiante.actividadesPorPagina = int.parse(value);
+                    configService.configuracionEstudiante.actividadesPorPagina =
+                        int.parse(value);
                     _onConfiguracionChange();
                   },
                 ),
@@ -377,7 +380,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
                   configService.configuracionEstudiante.ordenPredeterminado,
                   [
                     'fecha-desc',
-                    'fecha-asc', 
+                    'fecha-asc',
                     'nombre-asc',
                     'nombre-desc',
                     'tipo-asc',
@@ -385,7 +388,8 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
                     'encargado-asc'
                   ],
                   (value) {
-                    configService.configuracionEstudiante.ordenPredeterminado = value;
+                    configService.configuracionEstudiante.ordenPredeterminado =
+                        value;
                     _onConfiguracionChange();
                   },
                   displayNames: [
@@ -441,9 +445,9 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
                 ),
               ],
             ),
-            
-            SizedBox(height: 16),
-            
+
+            const SizedBox(height: 16),
+
             // Dashboard
             _buildSeccionConfiguracion(
               titulo: 'Dashboard',
@@ -460,9 +464,9 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
                 ),
               ],
             ),
-            
-            SizedBox(height: 16),
-            
+
+            const SizedBox(height: 16),
+
             // Configuración de Tabla
             _buildSeccionConfiguracion(
               titulo: 'Lista de Asistencias',
@@ -471,14 +475,16 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
                 _buildSelectItem(
                   'Registros por página',
                   'Cantidad de registros mostrados por página',
-                  configService.configuracionEncargado.registrosPorPagina.toString(),
+                  configService.configuracionEncargado.registrosPorPagina
+                      .toString(),
                   ['10', '20', '50', '100'],
                   (value) {
-                    configService.configuracionEncargado.registrosPorPagina = int.parse(value);
+                    configService.configuracionEncargado.registrosPorPagina =
+                        int.parse(value);
                     _onConfiguracionChange();
                   },
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 _buildColumnasVisibles(configService),
               ],
             ),
@@ -523,9 +529,9 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
                 ),
               ],
             ),
-            
-            SizedBox(height: 16),
-            
+
+            const SizedBox(height: 16),
+
             // Dashboard Administrativo
             _buildSeccionConfiguracion(
               titulo: 'Panel de Administración',
@@ -543,18 +549,20 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
                 _buildSelectItem(
                   'Registros por página',
                   'Cantidad de registros mostrados por página',
-                  configService.configuracionEncargado.registrosPorPagina.toString(),
+                  configService.configuracionEncargado.registrosPorPagina
+                      .toString(),
                   ['10', '20', '50', '100'],
                   (value) {
-                    configService.configuracionEncargado.registrosPorPagina = int.parse(value);
+                    configService.configuracionEncargado.registrosPorPagina =
+                        int.parse(value);
                     _onConfiguracionChange();
                   },
                 ),
               ],
             ),
-            
-            SizedBox(height: 16),
-            
+
+            const SizedBox(height: 16),
+
             // Configuración Avanzada
             _buildSeccionConfiguracion(
               titulo: 'Configuración Avanzada',
@@ -582,7 +590,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
-            offset: Offset(0, 4),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -591,7 +599,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
         children: [
           // Header de la sección
           Container(
-            padding: EdgeInsets.all(20),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               border: Border(
                 bottom: BorderSide(
@@ -606,20 +614,20 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: Color(Constants.primaryColor).withOpacity(0.1),
+                    color: const Color(Constants.primaryColor).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Icon(
                     icono,
-                    color: Color(Constants.primaryColor),
+                    color: const Color(Constants.primaryColor),
                     size: 20,
                   ),
                 ),
-                SizedBox(width: 16),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Text(
                     titulo,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                       color: Colors.black87,
@@ -629,10 +637,10 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
               ],
             ),
           ),
-          
+
           // Contenido de la sección
           Padding(
-            padding: EdgeInsets.all(20),
+            padding: const EdgeInsets.all(20),
             child: Column(
               children: children,
             ),
@@ -643,14 +651,10 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
   }
 
   Widget _buildToggleItem(
-    String titulo, 
-    String descripcion,
-    bool valor, 
-    Function(bool) onChanged,
-    {bool aplicaInmediato = false}
-  ) {
+      String titulo, String descripcion, bool valor, Function(bool) onChanged,
+      {bool aplicaInmediato = false}) {
     return Container(
-      margin: EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 16),
       child: Row(
         children: [
           Expanded(
@@ -659,13 +663,13 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
               children: [
                 Text(
                   titulo,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
                     color: Colors.black87,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
                   descripcion,
                   style: TextStyle(
@@ -674,7 +678,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
                   ),
                 ),
                 if (aplicaInmediato)
-                  Padding(
+                  const Padding(
                     padding: EdgeInsets.only(top: 4),
                     child: Text(
                       'Se aplica inmediatamente',
@@ -688,12 +692,13 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
               ],
             ),
           ),
-          SizedBox(width: 16),
+          const SizedBox(width: 16),
           Switch(
             value: valor,
             onChanged: onChanged,
-            activeColor: Color(Constants.primaryColor),
-            activeTrackColor: Color(Constants.primaryColor).withOpacity(0.3),
+            activeColor: const Color(Constants.primaryColor),
+            activeTrackColor:
+                const Color(Constants.primaryColor).withOpacity(0.3),
           ),
         ],
       ),
@@ -701,28 +706,28 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
   }
 
   Widget _buildSelectItem(
-    String titulo, 
+    String titulo,
     String descripcion,
-    String valorActual, 
-    List<String> opciones, 
+    String valorActual,
+    List<String> opciones,
     Function(String) onChanged, {
     List<String>? displayNames,
     bool aplicaInmediato = false,
   }) {
     return Container(
-      margin: EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             titulo,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w500,
               color: Colors.black87,
             ),
           ),
-          SizedBox(height: 4),
+          const SizedBox(height: 4),
           Text(
             descripcion,
             style: TextStyle(
@@ -731,7 +736,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
             ),
           ),
           if (aplicaInmediato)
-            Padding(
+            const Padding(
               padding: EdgeInsets.only(top: 4),
               child: Text(
                 'Se aplica inmediatamente',
@@ -742,10 +747,10 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
                 ),
               ),
             ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           Container(
             width: double.infinity,
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             decoration: BoxDecoration(
               border: Border.all(color: Colors.grey[300]!),
               borderRadius: BorderRadius.circular(12),
@@ -754,19 +759,20 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
             child: DropdownButton<String>(
               value: valorActual,
               isExpanded: true,
-              underline: SizedBox(),
+              underline: const SizedBox(),
               items: opciones.asMap().entries.map((entry) {
                 final index = entry.key;
                 final value = entry.value;
-                final displayName = displayNames != null && index < displayNames.length
-                    ? displayNames[index]
-                    : value;
-                
+                final displayName =
+                    displayNames != null && index < displayNames.length
+                        ? displayNames[index]
+                        : value;
+
                 return DropdownMenuItem<String>(
                   value: value,
                   child: Text(
                     displayName,
-                    style: TextStyle(fontSize: 14),
+                    style: const TextStyle(fontSize: 14),
                   ),
                 );
               }).toList(),
@@ -782,26 +788,22 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
     );
   }
 
-  Widget _buildVistaSelector(
-    String titulo, 
-    String descripcion,
-    String valorActual, 
-    Function(String) onChanged
-  ) {
+  Widget _buildVistaSelector(String titulo, String descripcion,
+      String valorActual, Function(String) onChanged) {
     return Container(
-      margin: EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             titulo,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w500,
               color: Colors.black87,
             ),
           ),
-          SizedBox(height: 4),
+          const SizedBox(height: 4),
           Text(
             descripcion,
             style: TextStyle(
@@ -809,7 +811,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
               color: Colors.grey[600],
             ),
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           Row(
             children: [
               Expanded(
@@ -821,7 +823,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
                   onTap: () => onChanged('tabla'),
                 ),
               ),
-              SizedBox(width: 16),
+              const SizedBox(width: 16),
               Expanded(
                 child: _buildVistaBoton(
                   icono: Icons.grid_view,
@@ -846,16 +848,17 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
     required VoidCallback onTap,
   }) {
     final isSelected = valorActual == valor;
-    
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? Color(Constants.primaryColor) : Colors.white,
+          color:
+              isSelected ? const Color(Constants.primaryColor) : Colors.white,
           border: Border.all(
-            color: isSelected 
-                ? Color(Constants.primaryColor) 
+            color: isSelected
+                ? const Color(Constants.primaryColor)
                 : Colors.grey[300]!,
             width: 2,
           ),
@@ -863,9 +866,9 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: Color(Constants.primaryColor).withOpacity(0.3),
+                    color: const Color(Constants.primaryColor).withOpacity(0.3),
                     blurRadius: 8,
-                    offset: Offset(0, 4),
+                    offset: const Offset(0, 4),
                   ),
                 ]
               : null,
@@ -877,7 +880,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
               color: isSelected ? Colors.white : Colors.grey[600],
               size: 28,
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               titulo,
               style: TextStyle(
@@ -897,7 +900,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             'Columnas visibles en tabla',
             style: TextStyle(
               fontSize: 16,
@@ -905,7 +908,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
               color: Colors.black87,
             ),
           ),
-          SizedBox(height: 4),
+          const SizedBox(height: 4),
           Text(
             'Selecciona qué columnas mostrar en la tabla de asistencias',
             style: TextStyle(
@@ -913,8 +916,8 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
               color: Colors.grey[600],
             ),
           ),
-          SizedBox(height: 8),
-          Text(
+          const SizedBox(height: 8),
+          const Text(
             'Se guarda automáticamente',
             style: TextStyle(
               fontSize: 12,
@@ -922,9 +925,9 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
               fontStyle: FontStyle.italic,
             ),
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           Container(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.grey[50],
               borderRadius: BorderRadius.circular(12),
@@ -935,24 +938,27 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
                 final isEsencial = columna['esencial'] as bool;
                 final key = columna['key'] as String;
                 final label = columna['label'] as String;
-                final isVisible = configService.configuracionEncargado.columnasVisibles[key] ?? true;
-                
+                final isVisible = configService
+                        .configuracionEncargado.columnasVisibles[key] ??
+                    true;
+
                 return Container(
-                  margin: EdgeInsets.only(bottom: 12),
-                  padding: EdgeInsets.symmetric(vertical: 8),
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
                   child: Row(
                     children: [
                       Checkbox(
                         value: isVisible,
-                        onChanged: isEsencial 
-                            ? null 
+                        onChanged: isEsencial
+                            ? null
                             : (value) {
-                                configService.configuracionEncargado.columnasVisibles[key] = value ?? false;
+                                configService.configuracionEncargado
+                                    .columnasVisibles[key] = value ?? false;
                                 configService.guardarConfiguracion();
                               },
-                        activeColor: Color(Constants.primaryColor),
+                        activeColor: const Color(Constants.primaryColor),
                       ),
-                      SizedBox(width: 12),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -962,7 +968,9 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
-                                color: isEsencial ? Colors.grey[600] : Colors.black87,
+                                color: isEsencial
+                                    ? Colors.grey[600]
+                                    : Colors.black87,
                               ),
                             ),
                             if (isEsencial)
@@ -990,7 +998,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
 
   Widget _buildInformacionAdicional() {
     return Container(
-      padding: EdgeInsets.all(20),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -1021,7 +1029,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
                   size: 20,
                 ),
               ),
-              SizedBox(width: 16),
+              const SizedBox(width: 16),
               Expanded(
                 child: Text(
                   'Información',
@@ -1034,21 +1042,28 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
               ),
             ],
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (userRole == 'Estudiante') ...[
-                _buildInfoItem('Los cambios visuales se aplican inmediatamente'),
-                _buildInfoItem('Las preferencias se guardan automáticamente en tu dispositivo'),
+                _buildInfoItem(
+                    'Los cambios visuales se aplican inmediatamente'),
+                _buildInfoItem(
+                    'Las preferencias se guardan automáticamente en tu dispositivo'),
               ],
               if (userRole == 'Encargado' || userRole == 'Administrador') ...[
-                _buildInfoItem('Los cambios visuales se aplican inmediatamente'),
-                _buildInfoItem('Los cambios en columnas de tabla se guardan automáticamente'),
-                _buildInfoItem('Otras configuraciones requieren "Aplicar cambios"'),
+                _buildInfoItem(
+                    'Los cambios visuales se aplican inmediatamente'),
+                _buildInfoItem(
+                    'Los cambios en columnas de tabla se guardan automáticamente'),
+                _buildInfoItem(
+                    'Otras configuraciones requieren "Aplicar cambios"'),
               ],
-              _buildInfoItem('Puedes restablecer la configuración por defecto en cualquier momento'),
-              _buildInfoItem('Tu configuración es personal y no afecta a otros usuarios'),
+              _buildInfoItem(
+                  'Puedes restablecer la configuración por defecto en cualquier momento'),
+              _buildInfoItem(
+                  'Tu configuración es personal y no afecta a otros usuarios'),
             ],
           ),
         ],
@@ -1058,12 +1073,12 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
 
   Widget _buildInfoItem(String texto) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            margin: EdgeInsets.only(top: 8, right: 12),
+            margin: const EdgeInsets.only(top: 8, right: 12),
             width: 6,
             height: 6,
             decoration: BoxDecoration(
