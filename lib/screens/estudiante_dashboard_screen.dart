@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import '../utils/constants.dart';
 import 'configuracion_screen.dart';
@@ -111,7 +110,7 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
 
               Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(builder: (context) => LoginScreen()),
+                MaterialPageRoute(builder: (context) => const LoginScreen()),
                 (route) => false,
               );
             },
@@ -128,7 +127,7 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
   void _navegarAConfiguracion() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => ConfiguracionScreen()),
+      MaterialPageRoute(builder: (context) => const ConfiguracionScreen()),
     );
   }
 
