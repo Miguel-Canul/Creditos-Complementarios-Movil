@@ -1,24 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import '../models/asistencia_detalle.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
-import '../services/configuracion_service.dart';
 import '../utils/constants.dart';
 import 'configuracion_screen.dart';
 import 'login_screen.dart';
 
 class EstudianteDashboardScreen extends StatefulWidget {
+  const EstudianteDashboardScreen({super.key});
+
   @override
-  _EstudianteDashboardScreenState createState() => _EstudianteDashboardScreenState();
+  _EstudianteDashboardScreenState createState() =>
+      _EstudianteDashboardScreenState();
 }
 
-class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen> 
+class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
     with TickerProviderStateMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  
-  List<AsistenciaDetalle> _misAsistencias = [];
+
+  // Lista temporal para actividades - reemplaza con tu modelo real
+  List<Map<String, dynamic>> _misActividades = [];
   bool _isLoading = true;
   String? _numeroControl;
   late AnimationController _animationController;
@@ -28,14 +30,13 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
   void initState() {
     super.initState();
     _animationController = AnimationController(
-      duration: Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 800),
       vsync: this,
     );
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOut)
-    );
+        CurvedAnimation(parent: _animationController, curve: Curves.easeOut));
     _obtenerNumeroControl();
-    _cargarMisAsistencias();
+    _cargarMisActividades();
   }
 
   @override
@@ -51,19 +52,42 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
     });
   }
 
-  Future<void> _cargarMisAsistencias() async {
-    if (_numeroControl == null) return;
-    
+  Future<void> _cargarMisActividades() async {
     setState(() => _isLoading = true);
-    
-    final apiService = context.read<ApiService>();
-    final asistencias = await apiService.getAsistenciasPorEstudiante(_numeroControl!);
-    
+
+    // Simular carga de datos - reemplaza con tu lógica real
+    await Future.delayed(const Duration(seconds: 1));
+
+    // Datos de ejemplo - reemplaza con tu data real
+    final actividadesEjemplo = [
+      {
+        'id': '1',
+        'nombre': 'Clase de Matemáticas',
+        'encargado': 'Dr. García',
+        'fecha': DateTime.now().subtract(const Duration(days: 1)),
+        'estado': Constants.estadoAsistio,
+      },
+      {
+        'id': '2',
+        'nombre': 'Laboratorio de Física',
+        'encargado': 'Dra. Martínez',
+        'fecha': DateTime.now().subtract(const Duration(days: 2)),
+        'estado': Constants.estadoNoAsistio,
+      },
+      {
+        'id': '3',
+        'nombre': 'Taller de Programación',
+        'encargado': 'Ing. Rodríguez',
+        'fecha': DateTime.now().subtract(const Duration(days: 3)),
+        'estado': Constants.estadoJustificado,
+      },
+    ];
+
     setState(() {
-      _misAsistencias = asistencias;
+      _misActividades = actividadesEjemplo;
       _isLoading = false;
     });
-    
+
     _animationController.forward();
   }
 
@@ -71,20 +95,20 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Cerrar sesión'),
-        content: Text('¿Estás seguro de que quieres cerrar sesión?'),
+        title: const Text('Cerrar sesión'),
+        content: const Text('¿Estás seguro de que quieres cerrar sesión?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancelar'),
+            child: const Text('Cancelar'),
           ),
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(context);
-              
+
               final authService = context.read<AuthService>();
               await authService.logout();
-              
+
               Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(builder: (context) => LoginScreen()),
@@ -92,9 +116,9 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
               );
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Color(Constants.dangerColor),
+              backgroundColor: const Color(Constants.dangerColor),
             ),
-            child: Text('Cerrar sesión'),
+            child: const Text('Cerrar sesión'),
           ),
         ],
       ),
@@ -108,13 +132,19 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
     );
   }
 
-  // Estadísticas de mis asistencias
+  // Estadísticas de actividades
   Map<String, int> _calcularEstadisticas() {
-    final total = _misAsistencias.length;
-    final asistio = _misAsistencias.where((a) => a.estadoAsistencia == Constants.estadoAsistio).length;
-    final noAsistio = _misAsistencias.where((a) => a.estadoAsistencia == Constants.estadoNoAsistio).length;
-    final justificado = _misAsistencias.where((a) => a.estadoAsistencia == Constants.estadoJustificado).length;
-    
+    final total = _misActividades.length;
+    final asistio = _misActividades
+        .where((a) => a['estado'] == Constants.estadoAsistio)
+        .length;
+    final noAsistio = _misActividades
+        .where((a) => a['estado'] == Constants.estadoNoAsistio)
+        .length;
+    final justificado = _misActividades
+        .where((a) => a['estado'] == Constants.estadoJustificado)
+        .length;
+
     return {
       'total': total,
       'asistio': asistio,
@@ -124,9 +154,10 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
   }
 
   // Actividades recientes (últimas 5)
-  List<AsistenciaDetalle> _obtenerActividadesRecientes() {
-    final actividades = List<AsistenciaDetalle>.from(_misAsistencias);
-    actividades.sort((a, b) => b.fechaHora.compareTo(a.fechaHora));
+  List<Map<String, dynamic>> _obtenerActividadesRecientes() {
+    final actividades = List<Map<String, dynamic>>.from(_misActividades);
+    actividades.sort(
+        (a, b) => (b['fecha'] as DateTime).compareTo(a['fecha'] as DateTime));
     return actividades.take(5).toList();
   }
 
@@ -134,7 +165,7 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-      backgroundColor: Color(0xfff0f2f5),
+      backgroundColor: const Color(0xfff0f2f5),
       drawer: _buildDrawer(),
       body: CustomScrollView(
         slivers: [
@@ -155,8 +186,8 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(Constants.primaryColor),
-              Color(Constants.primaryColor).withOpacity(0.8),
+              const Color(Constants.primaryColor),
+              const Color(Constants.primaryColor).withOpacity(0.8),
             ],
           ),
         ),
@@ -164,7 +195,7 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
           padding: EdgeInsets.zero,
           children: [
             DrawerHeader(
-              decoration: BoxDecoration(color: Colors.transparent),
+              decoration: const BoxDecoration(color: Colors.transparent),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -179,16 +210,13 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
                         height: 60,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
-                          return Icon(
-                            Icons.person, 
-                            size: 35, 
-                            color: Color(Constants.primaryColor)
-                          );
+                          return const Icon(Icons.person,
+                              size: 35, color: Color(Constants.primaryColor));
                         },
                       ),
                     ),
                   ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: 12),
                   Consumer<AuthService>(
                     builder: (context, authService, child) {
                       return Column(
@@ -196,7 +224,7 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
                         children: [
                           Text(
                             authService.userName ?? 'Estudiante',
-                            style: TextStyle(
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -204,16 +232,17 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          SizedBox(height: 4),
+                          const SizedBox(height: 4),
                           Container(
-                            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
                               color: Colors.white.withOpacity(0.2),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
                               authService.userRole ?? 'Estudiante',
-                              style: TextStyle(
+                              style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
@@ -230,27 +259,28 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
             _buildDrawerItem(Icons.dashboard, 'Dashboard', true),
             _buildDrawerItem(Icons.school, 'Mis Actividades', false),
             _buildDrawerItem(Icons.assignment, 'Mi Historial', false),
-            Divider(color: Colors.white30, thickness: 1),
+            const Divider(color: Colors.white30, thickness: 1),
             _buildDrawerItem(Icons.settings, 'Configuración', false, onTap: () {
               Navigator.pop(context);
               _navegarAConfiguracion();
             }),
             _buildDrawerItem(Icons.help_outline, 'Ayuda', false),
-            Spacer(),
+            const Spacer(),
             _buildDrawerItem(Icons.logout, 'Cerrar sesión', false, onTap: () {
               Navigator.pop(context);
               _mostrarDialogoCerrarSesion();
             }),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildDrawerItem(IconData icon, String title, bool isSelected, {VoidCallback? onTap}) {
+  Widget _buildDrawerItem(IconData icon, String title, bool isSelected,
+      {VoidCallback? onTap}) {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
         color: isSelected ? Colors.white.withOpacity(0.2) : Colors.transparent,
@@ -274,7 +304,7 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
       expandedHeight: 120,
       floating: false,
       pinned: true,
-      backgroundColor: Color(Constants.primaryColor),
+      backgroundColor: const Color(Constants.primaryColor),
       elevation: 4,
       automaticallyImplyLeading: false,
       flexibleSpace: FlexibleSpaceBar(
@@ -284,24 +314,23 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Color(Constants.primaryColor),
-                Color(Constants.primaryColor).withOpacity(0.8),
+                const Color(Constants.primaryColor),
+                const Color(Constants.primaryColor).withOpacity(0.8),
               ],
             ),
           ),
           child: SafeArea(
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   IconButton(
-                    icon: Icon(Icons.menu, color: Colors.white, size: 28),
+                    icon: const Icon(Icons.menu, color: Colors.white, size: 28),
                     onPressed: () => _scaffoldKey.currentState?.openDrawer(),
                   ),
-                  
-                  Expanded(
+                  const Expanded(
                     child: Center(
                       child: Text(
                         'Mi Dashboard',
@@ -313,9 +342,8 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
                       ),
                     ),
                   ),
-                  
                   Container(
-                    padding: EdgeInsets.all(6),
+                    padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(8),
@@ -323,7 +351,7 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
                         BoxShadow(
                           color: Colors.black.withOpacity(0.1),
                           blurRadius: 4,
-                          offset: Offset(0, 2),
+                          offset: const Offset(0, 2),
                         ),
                       ],
                     ),
@@ -333,7 +361,7 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
                       height: 32,
                       fit: BoxFit.contain,
                       errorBuilder: (context, error, stackTrace) {
-                        return Icon(
+                        return const Icon(
                           Icons.school,
                           color: Color(Constants.primaryColor),
                           size: 32,
@@ -355,23 +383,23 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
       child: FadeTransition(
         opacity: _fadeAnimation,
         child: Container(
-          margin: EdgeInsets.all(16),
-          padding: EdgeInsets.all(20),
+          margin: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Color(Constants.successColor),
-                Color(Constants.successColor).withOpacity(0.8),
+                const Color(Constants.successColor),
+                const Color(Constants.successColor).withOpacity(0.8),
               ],
             ),
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Color(Constants.successColor).withOpacity(0.3),
+                color: const Color(Constants.successColor).withOpacity(0.3),
                 blurRadius: 15,
-                offset: Offset(0, 8),
+                offset: const Offset(0, 8),
               ),
             ],
           ),
@@ -381,7 +409,7 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       '¡Hola!',
                       style: TextStyle(
                         color: Colors.white,
@@ -389,12 +417,12 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Consumer<AuthService>(
                       builder: (context, authService, child) {
                         return Text(
                           authService.userName ?? 'Estudiante',
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 18,
                             fontWeight: FontWeight.w500,
@@ -402,7 +430,7 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
                         );
                       },
                     ),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     Text(
                       'Aquí puedes ver el resumen de tus actividades y asistencias.',
                       style: TextStyle(
@@ -413,7 +441,7 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
                   ],
                 ),
               ),
-              SizedBox(width: 16),
+              const SizedBox(width: 16),
               Container(
                 width: 80,
                 height: 80,
@@ -427,7 +455,7 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
                   height: 60,
                   fit: BoxFit.contain,
                   errorBuilder: (context, error, stackTrace) {
-                    return Icon(
+                    return const Icon(
                       Icons.school,
                       size: 40,
                       color: Colors.white,
@@ -444,19 +472,19 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
 
   Widget _buildStatsSection() {
     final stats = _calcularEstadisticas();
-    
+
     return SliverToBoxAdapter(
       child: FadeTransition(
         opacity: _fadeAnimation,
         child: Container(
-          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
+              const Padding(
                 padding: EdgeInsets.only(left: 4, bottom: 12),
                 child: Text(
-                  'Resumen de Asistencias',
+                  'Resumen de Actividades',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -471,21 +499,21 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
                       'Total',
                       stats['total'].toString(),
                       Icons.assignment,
-                      Color(Constants.primaryColor),
+                      const Color(Constants.primaryColor),
                     ),
                   ),
-                  SizedBox(width: 8),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: _buildStatCard(
                       'Asistí',
                       stats['asistio'].toString(),
                       Icons.check_circle,
-                      Color(Constants.successColor),
+                      const Color(Constants.successColor),
                     ),
                   ),
                 ],
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               Row(
                 children: [
                   Expanded(
@@ -493,16 +521,16 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
                       'Justificado',
                       stats['justificado'].toString(),
                       Icons.info,
-                      Color(Constants.warningColor),
+                      const Color(Constants.warningColor),
                     ),
                   ),
-                  SizedBox(width: 8),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: _buildStatCard(
                       'Faltas',
                       stats['noAsistio'].toString(),
                       Icons.cancel,
-                      Color(Constants.dangerColor),
+                      const Color(Constants.dangerColor),
                     ),
                   ),
                 ],
@@ -514,9 +542,10 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+  Widget _buildStatCard(
+      String title, String value, IconData icon, Color color) {
     return Container(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -524,14 +553,14 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
             blurRadius: 8,
-            offset: Offset(0, 2),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Column(
         children: [
           Icon(icon, color: color, size: 28),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Text(
             value,
             style: TextStyle(
@@ -555,19 +584,19 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
 
   Widget _buildRecentActivitiesSection() {
     final actividadesRecientes = _obtenerActividadesRecientes();
-    
+
     return SliverToBoxAdapter(
       child: FadeTransition(
         opacity: _fadeAnimation,
         child: Container(
-          margin: EdgeInsets.all(16),
+          margin: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
+                  const Text(
                     'Actividades Recientes',
                     style: TextStyle(
                       fontSize: 18,
@@ -575,12 +604,12 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
                       color: Color(Constants.primaryColor),
                     ),
                   ),
-                  if (actividadesRecientes.length > 0)
+                  if (actividadesRecientes.isNotEmpty)
                     TextButton(
                       onPressed: () {
                         // Navegar a historial completo
                       },
-                      child: Text(
+                      child: const Text(
                         'Ver todas',
                         style: TextStyle(
                           color: Color(Constants.accentColor),
@@ -590,10 +619,9 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
                     ),
                 ],
               ),
-              SizedBox(height: 12),
-              
+              const SizedBox(height: 12),
               if (_isLoading)
-                Center(
+                const Center(
                   child: Padding(
                     padding: EdgeInsets.all(32),
                     child: CircularProgressIndicator(
@@ -605,9 +633,9 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
                 _buildEmptyState()
               else
                 Column(
-                  children: actividadesRecientes.map((actividad) => 
-                    _buildActivityCard(actividad)
-                  ).toList(),
+                  children: actividadesRecientes
+                      .map((actividad) => _buildActivityCard(actividad))
+                      .toList(),
                 ),
             ],
           ),
@@ -618,7 +646,7 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
 
   Widget _buildEmptyState() {
     return Container(
-      padding: EdgeInsets.all(32),
+      padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -626,7 +654,7 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
             blurRadius: 8,
-            offset: Offset(0, 2),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -645,7 +673,7 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
               );
             },
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           Text(
             'No tienes actividades registradas',
             style: TextStyle(
@@ -655,9 +683,9 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
             ),
             textAlign: TextAlign.center,
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Text(
-            'Cuando tengas asistencias registradas, aparecerán aquí.',
+            'Cuando tengas actividades registradas, aparecerán aquí.',
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey[500],
@@ -669,12 +697,12 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
     );
   }
 
-  Widget _buildActivityCard(AsistenciaDetalle actividad) {
-    Color estadoColor = _getEstadoColor(actividad.estadoAsistencia);
-    IconData estadoIcon = _getEstadoIcon(actividad.estadoAsistencia);
-    
+  Widget _buildActivityCard(Map<String, dynamic> actividad) {
+    Color estadoColor = _getEstadoColor(actividad['estado']);
+    IconData estadoIcon = _getEstadoIcon(actividad['estado']);
+
     return Container(
-      margin: EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -682,12 +710,12 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
             blurRadius: 8,
-            offset: Offset(0, 2),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Padding(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Row(
           children: [
             // Icono de la actividad
@@ -695,26 +723,26 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                color: Color(Constants.primaryColor).withOpacity(0.1),
+                color: const Color(Constants.primaryColor).withOpacity(0.1),
                 borderRadius: BorderRadius.circular(25),
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.event,
                 color: Color(Constants.primaryColor),
                 size: 24,
               ),
             ),
-            
-            SizedBox(width: 16),
-            
+
+            const SizedBox(width: 16),
+
             // Información de la actividad
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    actividad.nombreActividad,
-                    style: TextStyle(
+                    actividad['nombre'],
+                    style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                       color: Colors.black87,
@@ -722,17 +750,17 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text(
-                    actividad.encargado,
+                    actividad['encargado'],
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey[600],
                     ),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text(
-                    DateFormat('dd MMM yyyy, HH:mm').format(actividad.fechaHora),
+                    DateFormat('dd MMM yyyy, HH:mm').format(actividad['fecha']),
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.grey[500],
@@ -741,10 +769,10 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
                 ],
               ),
             ),
-            
+
             // Estado de asistencia
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 color: estadoColor.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(20),
@@ -754,9 +782,9 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(estadoIcon, size: 14, color: estadoColor),
-                  SizedBox(width: 4),
+                  const SizedBox(width: 4),
                   Text(
-                    actividad.estadoAsistencia,
+                    actividad['estado'],
                     style: TextStyle(
                       color: estadoColor,
                       fontWeight: FontWeight.w600,
@@ -775,11 +803,11 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
   Color _getEstadoColor(String estado) {
     switch (estado) {
       case Constants.estadoAsistio:
-        return Color(Constants.successColor);
+        return const Color(Constants.successColor);
       case Constants.estadoNoAsistio:
-        return Color(Constants.dangerColor);
+        return const Color(Constants.dangerColor);
       case Constants.estadoJustificado:
-        return Color(Constants.warningColor);
+        return const Color(Constants.warningColor);
       default:
         return Colors.grey;
     }
