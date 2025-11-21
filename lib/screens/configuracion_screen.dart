@@ -696,7 +696,6 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
           Switch(
             value: valor,
             onChanged: onChanged,
-            activeThumbColor: const Color(Constants.primaryColor),
             activeTrackColor:
                 const Color(Constants.primaryColor).withOpacity(0.3),
           ),
