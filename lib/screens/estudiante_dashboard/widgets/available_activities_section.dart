@@ -79,7 +79,6 @@ class AvailableActivitiesSection extends StatelessWidget {
       ),
     );
   }
-
   
   // Método: Construye el Carrusel (ListView.builder)
   Widget _buildCarousel(List<Map<String, String>> activities) {
