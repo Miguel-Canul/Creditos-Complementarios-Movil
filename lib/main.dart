@@ -202,7 +202,7 @@ class MyApp extends StatelessWidget {
         }),
         trackColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return primaryColor.withOpacity(0.5);
+            return primaryColor.withAlpha(50);
           }
           return null;
         }),
