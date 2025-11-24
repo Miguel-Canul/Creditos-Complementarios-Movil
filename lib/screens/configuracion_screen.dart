@@ -195,7 +195,6 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
             backgroundColor: const Color(Constants.dangerColor),
             foregroundColor: Colors.white,
             heroTag: "reset",
-            child: const Icon(Icons.refresh),
           ),
         ],
       ),
@@ -696,8 +695,8 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
           Switch(
             value: valor,
             onChanged: onChanged,
-            activeTrackColor:
-                const Color(Constants.primaryColor).withOpacity(0.3),
+            activeColor: Color(Constants.primaryColor),
+            activeTrackColor: Color(Constants.primaryColor).withOpacity(0.3),
           ),
         ],
       ),

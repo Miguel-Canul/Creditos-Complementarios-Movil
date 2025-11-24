@@ -152,8 +152,8 @@ class _LoginScreenState extends State<LoginScreen>
     Navigator.push(
       context,
       PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            const RegistroScreen(),
+        pageBuilder: (context, animation, secondaryAnimation) => 
+            RegistroScreen(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           const begin = Offset(1.0, 0.0);
           const end = Offset.zero;
@@ -177,8 +177,8 @@ class _LoginScreenState extends State<LoginScreen>
     Navigator.push(
       context,
       PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            const ForgotPasswordScreen(),
+        pageBuilder: (context, animation, secondaryAnimation) => 
+            ForgotPasswordScreen(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           const begin = Offset(0.0, 1.0);
           const end = Offset.zero;
