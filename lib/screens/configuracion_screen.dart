@@ -212,7 +212,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
           end: Alignment.bottomRight,
           colors: [
             const Color(Constants.primaryColor),
-            const Color(Constants.primaryColor).withOpacity(0.8),
+            const Color(Constants.primaryColor).withValues(alpha: .8),
           ],
         ),
       ),
@@ -261,7 +261,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withValues(alpha: .2),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
@@ -588,7 +588,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -614,7 +614,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: const Color(Constants.primaryColor).withOpacity(0.1),
+                    color: const Color(Constants.primaryColor).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Icon(
@@ -697,7 +697,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen>
             value: valor,
             onChanged: onChanged,
             activeTrackColor:
-                const Color(Constants.primaryColor).withOpacity(0.3),
+                const Color(Constants.primaryColor).withValues(alpha: 0.3),
           ),
         ],
       ),
