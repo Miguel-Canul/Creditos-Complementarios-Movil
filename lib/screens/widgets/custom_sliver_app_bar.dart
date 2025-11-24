@@ -24,6 +24,7 @@ class CustomSliverAppBar extends StatelessWidget {
   }
 
 // 1. Método para construir el TÍTULO
+// .
   Widget _buildTitle() {
     return const Text(
       'Créditos complementarios',
