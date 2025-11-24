@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import '../utils/constants.dart';
-import 'registro_screen.dart';
-import 'forgot_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -146,56 +144,6 @@ class _LoginScreenState extends State<LoginScreen>
   void _triggerShakeAnimation() {
     _shakeAnimationController.reset();
     _shakeAnimationController.forward();
-  }
-
-  void _navegarARegistro() {
-    Navigator.push(
-      context,
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            const RegistroScreen(),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          const begin = Offset(1.0, 0.0);
-          const end = Offset.zero;
-          const curve = Curves.easeInOut;
-
-          var tween = Tween(begin: begin, end: end).chain(
-            CurveTween(curve: curve),
-          );
-
-          return SlideTransition(
-            position: animation.drive(tween),
-            child: child,
-          );
-        },
-        transitionDuration: const Duration(milliseconds: 300),
-      ),
-    );
-  }
-
-  void _navegarAOlvidarPassword() {
-    Navigator.push(
-      context,
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            const ForgotPasswordScreen(),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          const begin = Offset(0.0, 1.0);
-          const end = Offset.zero;
-          const curve = Curves.easeInOut;
-
-          var tween = Tween(begin: begin, end: end).chain(
-            CurveTween(curve: curve),
-          );
-
-          return SlideTransition(
-            position: animation.drive(tween),
-            child: child,
-          );
-        },
-        transitionDuration: const Duration(milliseconds: 300),
-      ),
-    );
   }
 
   @override
@@ -662,38 +610,6 @@ class _LoginScreenState extends State<LoginScreen>
             border: Border.all(
               color: const Color(Constants.primaryColor),
               width: 2,
-            ),
-          ),
-          child: OutlinedButton(
-            onPressed: _navegarARegistro,
-            style: OutlinedButton.styleFrom(
-              side: BorderSide.none,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
-            child: const Text(
-              'Crear Nueva Cuenta',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Color(Constants.primaryColor),
-              ),
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 16),
-
-        // Link olvidar contraseña
-        TextButton(
-          onPressed: _navegarAOlvidarPassword,
-          child: const Text(
-            '¿Olvidaste tu contraseña?',
-            style: TextStyle(
-              color: Color(Constants.primaryColor),
-              fontWeight: FontWeight.w500,
-              fontSize: 14,
             ),
           ),
         ),
