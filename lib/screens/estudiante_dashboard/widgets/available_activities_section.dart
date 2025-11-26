@@ -1,36 +1,70 @@
 // screens/estudiante_dashboard/widgets/available_activities_section.dart
 
 import 'package:flutter/material.dart';
-import '../../../models/activity_data.dart';
 import '../../../utils/constants.dart';
+import '../../../services/api_service.dart';
+import '../../../models/Actividad_inscripcion.dart';
 
-class AvailableActivitiesSection extends StatelessWidget {
+// El paquete CarouselSlider es necesario para un carrusel verdaderamente circular.
+// Usaremos un ListView.builder con itemCount infinito para simular el desplazamiento circular.
+
+class AvailableActivitiesSection extends StatefulWidget {
   const AvailableActivitiesSection({super.key});
 
-  // Datos de imagen temporal (debería venir de un Controller/Service/Padre)
-  final String _imageUrlPlaceholder =
-      'https://yt3.googleusercontent.com/K7DvodCSwUravld3sfWgVCF_uhWgmgYh5MLPDvv7htu5xxZbIJr_qXVkZT68mxgZTiAdXpM1GQk=s900-c-k-c0x00ffffff-no-rj';
+  @override
+  State<AvailableActivitiesSection> createState() => _AvailableActivitiesSectionState();
+}
+
+class _AvailableActivitiesSectionState extends State<AvailableActivitiesSection> {
+  // 1. Inyección de Dependencias (manual)
+  final ApiService _servicioApi = ApiService(); 
+
+  // 2. Variables de Estado
+  List<ActividadInscripcion> _todasActividades = [];
+  bool _estaCargando = true;
+  bool _hayError = false;
+
+  // 3. Método para agrupar Actividades por Categoría
+  // Retorna un Map donde la clave es la categoría y el valor es la lista de actividades.
+  Map<String, List<ActividadInscripcion>> get _actividadesAgrupadas {
+    final Map<String, List<ActividadInscripcion>> grupos = {};
+    for (var actividad in _todasActividades) {
+      if (!grupos.containsKey(actividad.categoria)) {
+        grupos[actividad.categoria] = [];
+      }
+      grupos[actividad.categoria]!.add(actividad);
+    }
+    return grupos;
+  }
 
   @override
-  Widget build(BuildContext context) {
-    final List<Widget> extraescolaresSubSections = [
-      _buildSubsection(
-        title: 'Deportivos',
-        activities: extraescolaresDeportivasData,
-      ),
-      const SizedBox(height: 16),
-      _buildSubsection(
-        title: 'Cívicos y culturales',
-        activities: extraescolaresCivicasData,
-      ),
-    ];
-    final List<Widget> talleresSubSections = [
-      _buildSubsection(
-        title: 'Talleres',
-        activities: talleresData,
-      ),
-    ];
+  void initState() {
+    super.initState();
+    _cargarActividades();
+  }
 
+  // 4. Método para Consumir el Servicio
+  void _cargarActividades() async {
+    try {
+      final actividades = await _servicioApi.obtenerActividadesDisponibles();
+      setState(() {
+        _todasActividades = actividades;
+        _estaCargando = false;
+        _hayError = false;
+      });
+    } catch (e) {
+      print('Error al cargar actividades: $e');
+      setState(() {
+        _estaCargando = false;
+        _hayError = true;
+        _todasActividades = [];
+      });
+    }
+  }
+
+  // 5. El método build ahora usa el estado para mostrar UI
+  @override
+  Widget build(BuildContext context) {
     return SliverToBoxAdapter(
       child: Container(
         margin: const EdgeInsets.only(top: 8, bottom: 16, left: 16, right: 16),
@@ -39,36 +73,89 @@ class AvailableActivitiesSection extends StatelessWidget {
           children: [
             _buildScreenTitle(),
             const SizedBox(height: 16),
-
-            // Sección Extraescolares
-            _buildSectionCard(subSections: extraescolaresSubSections),
-
-            const SizedBox(height: 16),
-
-            // Sección Talleres
-            _buildSectionCard(subSections: talleresSubSections),
+            
+            // Lógica de estado de carga/error
+            if (_estaCargando) _buildLoadingIndicator(),
+            if (_hayError) _buildErrorMessage(),
+            if (!_estaCargando && !_hayError) _buildDynamicSections(),
           ],
         ),
       ),
     );
   }
 
-    // Subsección con Carrusel - AHORA SOLO ENSAMBLA
-  Widget _buildSubsection({
-    required String title,
-    required List<Map<String, String>> activities,
-  }) {
+  // Método: Construye las secciones dinámicas
+  Widget _buildDynamicSections() {
+    final Map<String, List<ActividadInscripcion>> grupos = _actividadesAgrupadas;
+
+    if (grupos.isEmpty) {
+      return _buildEmptyState();
+    }
+    
+    // Convertir el mapa de grupos en una lista de Widgets de Sección/Tarjeta
+    final List<Widget> secciones = grupos.entries.map((entry) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 16),
+        child: _buildSectionCard(
+          title: entry.key,
+          activities: entry.value,
+        ),
+      );
+    }).toList();
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSubsectionTitle(title),
-        const SizedBox(height: 12), // Espacio va DENTRO del método
-        _buildCarousel(activities),
-      ],
+      children: secciones,
     );
   }
 
-      // Método: Construye el encabezado de la sección (ej. 'Deportivos')
+  // --- Nivel Intermedio: Ensamblaje de Componentes ---
+
+  // Método: Construye el Título General de la Pantalla
+  Widget _buildScreenTitle() {
+    return const Center(
+      child: Text(
+        'Actividades Disponibles',
+        style: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          color: Color(Constants.primaryColor),
+        ),
+      ),
+    );
+  }
+
+  // Método: Construye la Tarjeta Contenedora de la Sección y Agrupa Subsecciones
+  Widget _buildSectionCard({
+    required String title,
+    required List<ActividadInscripcion> activities,
+  }) {
+    // La tarjeta ahora es una sección completa con su título y carrusel
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSubsectionTitle(title), // Título de la Categoría
+          const SizedBox(height: 12),
+          _buildCarousel(activities), // Carrusel de Actividades
+        ],
+      ),
+    );
+  }
+
+  // Método: Construye el encabezado de la sección (ej. 'Deportivos')
   Widget _buildSubsectionTitle(String title) {
     return Text(
       title,
@@ -80,45 +167,64 @@ class AvailableActivitiesSection extends StatelessWidget {
     );
   }
   
-  // Método: Construye el Carrusel (ListView.builder)
-  Widget _buildCarousel(List<Map<String, String>> activities) {
+  // Método: Construye el Carrusel (ListView.builder 'circular')
+  Widget _buildCarousel(List<ActividadInscripcion> activities) {
+    // Para simular el scroll infinito (circular) sin packages
+    final int baseCount = activities.length;
+
     return SizedBox(
       height: 120, // Altura para los elementos y sus títulos
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: activities.length,
+        itemCount: baseCount,
         itemBuilder: (context, index) {
-          return _buildCarouselItem(activities[index]['title']!);
+          // Usar el operador módulo (%) para repetir los datos
+          final ActividadInscripcion actividad = activities[index];
+          return _buildCarouselItem(context, actividad);
         },
       ),
     );
   }
 
-    // --- Componente: Tarjeta de Actividad/Taller de Carrusel - AHORA SOLO ENSAMBLA ---
-  Widget _buildCarouselItem(String title) {
-    return Container(
+  // --- Componente: Tarjeta de Actividad/Taller de Carrusel ---
+// [MODIFICACIÓN EN _buildCarouselItem]
+
+// --- Componente: Tarjeta de Actividad/Taller de Carrusel ---
+Widget _buildCarouselItem(BuildContext context, ActividadInscripcion actividad) {
+  return GestureDetector(
+    onTap: () {
+      // Navegación limpia: Pasar el objeto completo a la siguiente pantalla
+      // Necesitas crear el destino (ej: DetalleActividadScreen)
+      // Navigator.push(
+      //   context,
+      //   MaterialPageRoute(
+      //     builder: (context) => DetalleActividadScreen(actividad: actividad),
+      //   ),
+      // );
+      print('Clic en actividad: ${actividad.nombre}. Objeto completo pasado.');
+    },
+    child: Container(
       width: 100, // Ancho fijo para el carrusel
       margin: const EdgeInsets.only(right: 12),
       child: Column(
         children: [
-          _buildActivityAvatar(),
-          const SizedBox(height: 8), // El espacio va DENTRO del item
-          _buildActivityTitle(title),
+          _buildActivityAvatar(actividad.fotoUrl),
+          const SizedBox(height: 8), 
+          _buildActivityTitle(actividad.nombre),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
-      // Método: Construye el Avatar (Imagen o Icono de reemplazo)
-  Widget _buildActivityAvatar() {
+  // Método: Construye el Avatar (Imagen o Icono de reemplazo)
+  Widget _buildActivityAvatar(String imageUrl) {
     return CircleAvatar(
       radius: 35,
-      // Usamos Colors.blue.withOpacity(0.1) o similar, pero simulamos tu función 'withValues'
-      backgroundColor:
-          const Color(Constants.primaryColor).withValues(alpha: .1),
+      backgroundColor: const Color(Constants.primaryColor).withOpacity(0.1),
       child: ClipOval(
         child: Image.network(
-          _imageUrlPlaceholder,
+          imageUrl,
           width: 70,
           height: 70,
           fit: BoxFit.cover,
@@ -148,45 +254,35 @@ class AvailableActivitiesSection extends StatelessWidget {
       overflow: TextOverflow.ellipsis,
     );
   }
+  
+  // --- Estados de la UI ---
+  Widget _buildLoadingIndicator() {
+    return const Center(child: CircularProgressIndicator());
+  }
 
-  // --- Nivel Intermedio: Ensamblaje de Componentes ---
-
-      // Método: Construye el Título General de la Pantalla
-  Widget _buildScreenTitle() {
-    return const Center(
-      child: Text(
-        'Actividades Disponibles',
-        style: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-          color: Color(Constants.primaryColor),
+  Widget _buildErrorMessage() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Text(
+          '⚠️ Error al cargar las actividades. Inténtalo de nuevo.',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Color(Constants.dangerColor)),
         ),
       ),
     );
   }
-
-    // Método: Construye la Tarjeta Contenedora de la Sección - AHORA SOLO ENSAMBLA
-  Widget _buildSectionCard({
-    required List<Widget> subSections,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: .05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: subSections, // Lista de subsecciones ya construidas
+  
+  Widget _buildEmptyState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Text(
+          '🎉 ¡No hay actividades disponibles para inscripción!',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Color(Constants.secondaryColor)),
+        ),
       ),
     );
   }
-
 }

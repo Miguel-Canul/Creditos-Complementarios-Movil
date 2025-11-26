@@ -1,10 +1,63 @@
 import 'package:flutter/material.dart';
 import '../../../utils/constants.dart';
+import '../../../services/api_service.dart';
 
-class CreditsSection extends StatelessWidget {
+class CreditsSection extends StatefulWidget {
   const CreditsSection({super.key});
 
-  final double progressValue = 2 / 5; // Mantenemos el valor aquí para pasarlo
+  @override
+  State<CreditsSection> createState() => _CreditsSectionState();
+}
+
+class _CreditsSectionState extends State<CreditsSection> {
+  static const String alumnoID = '290939ce-2031-7051-846b-9bd220fa68af';
+  final ApiService _servicioApi = ApiService();
+
+  // Variables de estado
+  double _creditosObtenidos = 0.0;
+  String? _urlConstancia;
+
+  double get _progressValue =>
+      _creditosObtenidos / Constants.creditosRequeridos;
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarDatos(); // Inicia la carga de datos al inicializar el Widget
+  }
+
+  void _cargarDatos() async {
+    bool cumpleRequisitos = false;
+
+    // Paso 1: Obtener créditos
+    try {
+      final double creditos =
+          await _servicioApi.obtenerCreditosComplementarios(alumnoID);
+
+      // La condición lógica que determina la activación del botón
+      if (creditos >= Constants.creditosRequeridos) {
+        cumpleRequisitos = true;
+      }
+
+      // Paso 2: Si cumple, intentar obtener la URL
+      String? urlConstancia;
+      if (cumpleRequisitos) {
+        urlConstancia =
+            await _servicioApi.obtenerUrlConstanciaLiberacion(alumnoID);
+      }
+
+      setState(() {
+        _creditosObtenidos = creditos;
+        _urlConstancia = urlConstancia; // Puede ser String o null
+      });
+    } catch (e) {
+      print('Error al cargar datos en UI: $e');
+      setState(() {
+        _creditosObtenidos = 0.0;
+        _urlConstancia = null;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +108,7 @@ class CreditsSection extends StatelessWidget {
 // Construye el contador de progreso (ej: 2/5)
   Widget _buildProgressCounter() {
     return Text(
-      '${(progressValue * 5).toInt()}/5',
+      '$_creditosObtenidos/${Constants.creditosRequeridos.toInt()}',
       style: const TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.bold,
@@ -69,7 +122,7 @@ class CreditsSection extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(5),
       child: LinearProgressIndicator(
-        value: progressValue,
+        value: _progressValue.toDouble(),
         backgroundColor: Colors.grey[300],
         valueColor: const AlwaysStoppedAnimation<Color>(
             Color(Constants.primaryColor)), // Color principal
@@ -118,6 +171,28 @@ class CreditsSection extends StatelessWidget {
 
 // Construye el botón "Descargar constancia de liberación"
   Widget _buildDownloadCertificateButton() {
+    // Condición de Activación:
+    // 1. Debe cumplir los créditos.
+    // 2. La URL debe existir (_urlConstancia no es null) (Requerido por la API).
+    final bool botonActivo = _urlConstancia != null &&
+        _creditosObtenidos >= Constants.creditosRequeridos;
+
+    // Si el botón está activo, se usa la función de descarga (placeholder).
+    final VoidCallback? onPressedAction = botonActivo
+        ? () {
+            if (_urlConstancia != null) {
+              print('Intentando descargar de: $_urlConstancia');
+              // Aquí irá la lógica de lanzamiento o descarga de URL
+            }
+          }
+        : null; // null desactiva el TextButton
+
+    final Color colorTexto =
+        botonActivo ? const Color(Constants.accentColor) : Colors.grey;
+
+    final Color colorIcono =
+        botonActivo ? const Color(Constants.accentColor) : Colors.grey;
+
     return TextButton.icon(
       style: TextButton.styleFrom(
         padding: EdgeInsets.zero,
@@ -125,12 +200,12 @@ class CreditsSection extends StatelessWidget {
         alignment: Alignment.centerRight,
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       ),
-      onPressed: null, // Deshabilitado
-      icon: const Icon(Icons.picture_as_pdf, color: Colors.grey, size: 18),
-      label: const Text(
+      onPressed: onPressedAction, // Usa la función o null
+      icon: Icon(Icons.picture_as_pdf, color: colorIcono, size: 18),
+      label: Text(
         'Descargar constancia de liberación',
         style: TextStyle(
-          color: Colors.grey,
+          color: colorTexto,
           fontWeight: FontWeight.w600,
         ),
       ),

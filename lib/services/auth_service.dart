@@ -26,11 +26,7 @@ class AuthService extends ChangeNotifier {
 
   // URL base para autenticación (igual que Angular)
   String get baseUrl {
-    if (kIsWeb) {
-      return 'http://localhost:5273';
-    } else {
-      return Constants.apiUrlAndroid;
-    }
+    return Constants.baseURL;
   }
 
   Map<String, String> get headers => {
@@ -133,12 +129,6 @@ class AuthService extends ChangeNotifier {
     } catch (e) {
       print('Error en login: $e');
 
-      // Fallback a usuarios de prueba solo en desarrollo
-      if (kDebugMode) {
-        print('Intentando con usuarios de prueba...');
-        return await _simulateLogin({'email': email, 'password': password});
-      }
-
       return false;
     }
   }
@@ -188,123 +178,6 @@ class AuthService extends ChangeNotifier {
       }
     } catch (e) {
       print('Error en registro: $e');
-      return false;
-    }
-  }
-
-  // RECUPERAR CONTRASEÑA - USA ENDPOINT REAL
-  Future<bool> recuperarPassword(String email) async {
-    try {
-      print('Enviando recuperación de contraseña para: $email');
-
-      final recuperarData = {
-        'email': email.trim(),
-      };
-
-      final url = '$baseUrl/api/Auth/forgot-password';
-      print('🌐 POST: $url');
-      print('📤 Body: ${json.encode(recuperarData)}');
-
-      final response = await http
-          .post(
-            Uri.parse(url),
-            headers: headers,
-            body: json.encode(recuperarData),
-          )
-          .timeout(const Duration(seconds: 10));
-
-      print('📥 Response status: ${response.statusCode}');
-      print('📥 Response body: ${response.body}');
-
-      if (response.statusCode == 200) {
-        print('Correo de recuperación enviado para: $email');
-        return true;
-      } else if (response.statusCode == 404) {
-        print('Email no encontrado');
-        return false;
-      } else {
-        print('Error del servidor: ${response.statusCode}');
-        return false;
-      }
-    } catch (e) {
-      print('Error en recuperación de contraseña: $e');
-      return false;
-    }
-  }
-
-  // RESETEAR CONTRASEÑA (para cuando el usuario tiene el token del email)
-  Future<bool> resetearPassword(String token, String nuevaPassword) async {
-    try {
-      print('Reseteando contraseña con token');
-
-      final resetData = {
-        'token': token,
-        'newPassword': nuevaPassword,
-        'confirmPassword': nuevaPassword,
-      };
-
-      final url = '$baseUrl/api/Auth/reset-password';
-      print('🌐 POST: $url');
-
-      final response = await http
-          .post(
-            Uri.parse(url),
-            headers: headers,
-            body: json.encode(resetData),
-          )
-          .timeout(const Duration(seconds: 10));
-
-      print('📥 Response status: ${response.statusCode}');
-
-      if (response.statusCode == 200) {
-        print('Contraseña restablecida exitosamente');
-        return true;
-      } else {
-        print('Error al restablecer contraseña: ${response.statusCode}');
-        return false;
-      }
-    } catch (e) {
-      print('Error en reseteo de contraseña: $e');
-      return false;
-    }
-  }
-
-  // CAMBIAR CONTRASEÑA (usuario autenticado)
-  Future<bool> cambiarPassword(
-      String passwordActual, String nuevaPassword) async {
-    try {
-      if (!_isAuthenticated) return false;
-
-      print('Cambiando contraseña del usuario autenticado');
-
-      final cambiarData = {
-        'currentPassword': passwordActual,
-        'newPassword': nuevaPassword,
-        'confirmPassword': nuevaPassword,
-      };
-
-      final url = '$baseUrl/api/Auth/change-password';
-      print('🌐 POST: $url');
-
-      final response = await http
-          .post(
-            Uri.parse(url),
-            headers: headers,
-            body: json.encode(cambiarData),
-          )
-          .timeout(const Duration(seconds: 10));
-
-      print('📥 Response status: ${response.statusCode}');
-
-      if (response.statusCode == 200) {
-        print('Contraseña cambiada exitosamente');
-        return true;
-      } else {
-        print('Error al cambiar contraseña: ${response.statusCode}');
-        return false;
-      }
-    } catch (e) {
-      print('Error en cambio de contraseña: $e');
       return false;
     }
   }
@@ -378,71 +251,6 @@ class AuthService extends ChangeNotifier {
       await logout();
       return false;
     }
-  }
-
-  // Simulación de login (solo para desarrollo/pruebas)
-  Future<bool> _simulateLogin(Map<String, dynamic> loginData) async {
-    final email = loginData['email'] as String;
-    final password = loginData['password'] as String;
-
-    // Usuarios de prueba
-    final usuariosPrueba = {
-      'angel.magana@chetumal.tecnm.mx': {
-        'password': '123456',
-        'role': 'Encargado',
-        'nombreCompleto': 'Ángel Magaña Quintal',
-        'usuario': 'angel.magana',
-      },
-      'admin@chetumal.tecnm.mx': {
-        'password': 'admin123',
-        'role': 'Administrador',
-        'nombreCompleto': 'Administrador del Sistema',
-        'usuario': 'admin',
-      },
-    };
-
-    // Verificar credenciales
-    if (usuariosPrueba.containsKey(email)) {
-      final usuario = usuariosPrueba[email]!;
-      if (usuario['password'] == password) {
-        // Generar token simulado
-        _userToken = 'mock_token_${DateTime.now().millisecondsSinceEpoch}';
-
-        // Establecer información del usuario
-        _userInfo = {
-          'email': email,
-          'nombreCompleto': usuario['nombreCompleto'],
-          'username': usuario['usuario'],
-          'role': usuario['role'],
-        };
-
-        _userRole = usuario['role'] as String;
-
-        return true;
-      }
-    }
-
-    // También verificar estudiantes (formato L########@chetumal.tecnm.mx)
-    if (email.contains('@chetumal.tecnm.mx') && email.startsWith('L')) {
-      final numeroControlMatch = RegExp(r'L(\d{8})@').firstMatch(email);
-      if (numeroControlMatch != null && password == '123456') {
-        final numeroControl = numeroControlMatch.group(1)!;
-
-        _userToken = 'mock_token_${DateTime.now().millisecondsSinceEpoch}';
-        _userInfo = {
-          'email': email,
-          'nombreCompleto': 'Estudiante TecNM',
-          'username': 'L$numeroControl',
-          'numeroControl': numeroControl,
-          'role': 'Estudiante',
-        };
-        _userRole = 'Estudiante';
-
-        return true;
-      }
-    }
-
-    return false;
   }
 
   // Logout
@@ -626,53 +434,6 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-  // Actualizar perfil del usuario
-  Future<bool> actualizarPerfil(Map<String, dynamic> nuevosDatos) async {
-    try {
-      if (!_isAuthenticated) return false;
-
-      print('🔄 Actualizando perfil del usuario');
-
-      final url = '$baseUrl/api/Auth/profile';
-      print('🌐 PUT: $url');
-      print('📤 Body: ${json.encode(nuevosDatos)}');
-
-      final response = await http
-          .put(
-            Uri.parse(url),
-            headers: headers,
-            body: json.encode(nuevosDatos),
-          )
-          .timeout(const Duration(seconds: 10));
-
-      print('📥 Update profile status: ${response.statusCode}');
-
-      if (response.statusCode == 200) {
-        final updatedData = json.decode(response.body);
-
-        // Actualizar información local
-        _userInfo = {
-          ..._userInfo!,
-          ...updatedData,
-        };
-
-        await _guardarSesion();
-        notifyListeners();
-
-        print('Perfil actualizado exitosamente');
-        return true;
-      } else if (response.statusCode == 401) {
-        await logout();
-        return false;
-      }
-
-      return false;
-    } catch (e) {
-      print('Error al actualizar perfil: $e');
-      return false;
-    }
-  }
-
   // Obtener rol del usuario actual (igual que Angular)
   String? getCurrentUserRole() {
     return _userRole;
@@ -683,21 +444,9 @@ class AuthService extends ChangeNotifier {
     return _userRole == role;
   }
 
-  // Verificar si es estudiante
-  bool get isEstudiante => _userRole == 'Estudiante';
-
-  // Verificar si es encargado
-  bool get isEncargado => _userRole == 'Encargado';
-
-  // Verificar si es administrador
-  bool get isAdministrador => _userRole == 'Administrador';
-
   // Obtener número de control (solo para estudiantes)
   String? get numeroControl {
-    if (isEstudiante && _userInfo != null) {
       return _userInfo!['numeroControl'];
-    }
-    return null;
   }
 
   // Refrescar información del usuario
@@ -726,32 +475,6 @@ class AuthService extends ChangeNotifier {
     } catch (e) {
       print('Error de conectividad auth: $e');
       return false;
-    }
-  }
-
-  // Obtener información de roles disponibles
-  Future<List<String>> obtenerRolesDisponibles() async {
-    try {
-      final url = '$baseUrl/api/Auth/roles';
-      print('🌐 GET: $url');
-
-      final response = await http
-          .get(
-            Uri.parse(url),
-            headers: headers,
-          )
-          .timeout(const Duration(seconds: 5));
-
-      if (response.statusCode == 200) {
-        final List<dynamic> rolesData = json.decode(response.body);
-        return rolesData.cast<String>();
-      }
-
-      // Roles por defecto si no se pueden obtener del servidor
-      return ['Estudiante', 'Encargado', 'Administrador'];
-    } catch (e) {
-      print('Error al obtener roles: $e');
-      return ['Estudiante', 'Encargado', 'Administrador'];
     }
   }
 
@@ -807,12 +530,6 @@ class AuthService extends ChangeNotifier {
       print('Error al obtener info del servidor: $e');
       return null;
     }
-  }
-
-  // Método para activar/desactivar modo debug
-  void setDebugMode(bool enabled) {
-    // Implementar lógica de debug si es necesario
-    print('Debug mode: ${enabled ? 'enabled' : 'disabled'}');
   }
 
   // Obtener estadísticas de sesión
