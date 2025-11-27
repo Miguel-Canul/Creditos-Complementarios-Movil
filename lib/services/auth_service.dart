@@ -1,13 +1,20 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:mobile/models/estudiante.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
+import 'package:amazon_cognito_identity_dart_2/cognito.dart';
 import '../utils/constants.dart';
 
 class AuthService extends ChangeNotifier {
   static final AuthService _instance = AuthService._internal();
   factory AuthService() => _instance;
-  AuthService._internal();
+  AuthService._internal() {
+    _initCognito();
+  }
+
+  // Configuración de Cognito
+  late CognitoUserPool _userPool;
+  late CognitoUser _cognitoUser;
 
   // Estado de autenticación
   bool _isAuthenticated = false;
@@ -15,25 +22,39 @@ class AuthService extends ChangeNotifier {
   Map<String, dynamic>? _userInfo;
   String? _userRole;
 
-  // Getters
+  /// Getters actualizados
   bool get isAuthenticated => _isAuthenticated;
   String? get userToken => _userToken;
   Map<String, dynamic>? get userInfo => _userInfo;
   String? get userRole => _userRole;
   String? get userName =>
-      _userInfo?['nombreCompleto'] ?? _userInfo?['username'];
+      _userInfo?['name'] ?? _userInfo?['email']?.split('@')[0];
   String? get userEmail => _userInfo?['email'];
 
-  // URL base para autenticación (igual que Angular)
-  String get baseUrl {
-    return Constants.baseURL;
+// NUEVOS GETTERS PARA LOS DATOS DE COGNITO
+  String? get userSub =>
+      _userInfo?['sub']; // ID único (290939ce-2031-7051-846b-9bd220fa68af)
+  String? get userGivenName => _userInfo?['given_name']; // Marco Antonio
+  String? get userFamilyName => _userInfo?['family_name']; // González Arias
+  String? get userNombreCompleto =>
+      '${_userInfo?['given_name'] ?? ''} ${_userInfo?['family_name'] ?? ''}'
+          .trim();
+  String? get userNumeroControl =>
+      _userInfo?['email']?.split('@').first; // l21390301
+
+  // En tu AuthService - agrega este método
+  Estudiante? get currentEstudiante {
+    if (!_isAuthenticated || _userInfo == null) return null;
+
+    return Estudiante.fromAuthService(this);
   }
 
-  Map<String, String> get headers => {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        if (_userToken != null) 'Authorization': 'Bearer $_userToken',
-      };
+  void _initCognito() {
+    _userPool = CognitoUserPool(
+      'us-west-1_I12eAnPIf',
+      '5c05blpm81g74abo84g5kso0c5', // Reemplaza con tu Client ID real
+    );
+  }
 
   // Inicializar servicio al arrancar la app
   Future<void> initialize() async {
@@ -44,19 +65,20 @@ class AuthService extends ChangeNotifier {
   Future<void> _verificarSesionExistente() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      final email = prefs.getString('userEmail');
 
-      final token = prefs.getString('userToken');
-      final userInfoString = prefs.getString('userInfo');
-      final role = prefs.getString('userRole');
+      if (email != null) {
+        _cognitoUser = CognitoUser(email, _userPool);
 
-      if (token != null && userInfoString != null && role != null) {
-        _userToken = token;
-        _userInfo = json.decode(userInfoString);
-        _userRole = role;
-        _isAuthenticated = true;
+        final session = await _cognitoUser.getSession();
+        if (session != null && session.isValid()) {
+          _userToken = session.accessToken?.jwtToken;
+          await _obtenerInformacionUsuario();
 
-        print('Sesión existente encontrada para: ${_userInfo?['email']}');
-        notifyListeners();
+          _isAuthenticated = true;
+          notifyListeners();
+          print('Sesión Cognito existente encontrada para: $email');
+        }
       }
     } catch (e) {
       print('Error al verificar sesión existente: $e');
@@ -64,191 +86,239 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-  // LOGIN PRINCIPAL
-  Future<bool> login(String email, String password, bool rememberMe) async {
+  // En tu AuthService - actualiza el método login
+  Future<Map<String, dynamic>> login(
+      String email, String password, bool rememberMe) async {
     try {
-      print('Intentando login para: $email');
+      print('Intentando login con Cognito para: $email');
 
-      final loginData = {
-        'email': email.trim(),
-        'password': password,
-      };
+      _cognitoUser = CognitoUser(email, _userPool);
 
-      // Llamada real al endpoint de login
-      final url = '$baseUrl/api/Auth/login';
-      print('🌐 POST: $url');
-      print('📤 Body: ${json.encode(loginData)}');
+      final authDetails = AuthenticationDetails(
+        username: email,
+        password: password,
+      );
 
-      final response = await http
-          .post(
-            Uri.parse(url),
-            headers: headers,
-            body: json.encode(loginData),
-          )
-          .timeout(const Duration(seconds: 10));
+      final session = await _cognitoUser.authenticateUser(authDetails);
 
-      print('📥 Response status: ${response.statusCode}');
-      print('📥 Response body: ${response.body}');
+      if (session != null && session.isValid()) {
+        _userToken = session.accessToken?.jwtToken;
+        await _obtenerInformacionUsuario();
 
-      if (response.statusCode == 200) {
-        final responseData = json.decode(response.body);
-
-        // Extraer información del usuario desde la respuesta
-        _userToken = responseData['token'];
-        _userInfo = {
-          'email': responseData['email'] ?? email,
-          'nombreCompleto':
-              responseData['nombreCompleto'] ?? responseData['name'],
-          'username':
-              responseData['username'] ?? responseData['email']?.split('@')[0],
-          'role': responseData['role'] ?? 'Estudiante',
-          'id': responseData['id'],
-          'numeroControl': responseData['numeroControl'], // Para estudiantes
-        };
-        _userRole = responseData['role'] ?? 'Estudiante';
-
-        // Guardar credenciales si el usuario lo solicita
         if (rememberMe) {
           await _guardarCredenciales(email, password);
         }
 
         await _guardarSesion();
-
         _isAuthenticated = true;
         notifyListeners();
 
-        print('Login exitoso para: $email');
-        return true;
-      } else if (response.statusCode == 401) {
-        print('Credenciales inválidas');
-        return false;
-      } else {
-        print('Error del servidor: ${response.statusCode}');
-        throw Exception('Error del servidor: ${response.statusCode}');
+        print('Login con Cognito exitoso para: $email');
+        return {'success': true, 'requiresPasswordReset': false};
       }
-    } catch (e) {
-      print('Error en login: $e');
 
-      return false;
+      return {'success': false, 'requiresPasswordReset': false};
+    } on CognitoClientException catch (e) {
+      print('Error Cognito en login: ${e.message}');
+
+      // Manejar caso específico de contraseña expirada
+      if (e.message?.contains('Temporary password has expired') == true ||
+          e.message?.contains('FORCE_CHANGE_PASSWORD') == true) {
+        return {
+          'success': false,
+          'requiresPasswordReset': true,
+          'message': 'La contraseña temporal ha expirado. Debes restablecerla.'
+        };
+      }
+
+      return {
+        'success': false,
+        'requiresPasswordReset': false,
+        'message': _getCognitoErrorMessage(e)
+      };
+    } catch (e) {
+      print('Error inesperado en login: $e');
+      return {
+        'success': false,
+        'requiresPasswordReset': false,
+        'message': 'Error inesperado en login: $e'
+      };
     }
   }
 
-  // REGISTRO
-  Future<bool> registro(
-      String nombreCompleto, String email, String password) async {
+  // Obtener información del usuario desde Cognito
+  Future<void> _obtenerInformacionUsuario() async {
     try {
-      print('Intentando registro para: $email');
+      final attributes = await _cognitoUser.getUserAttributes();
 
-      final registroData = {
-        'nombreCompleto': nombreCompleto.trim(),
-        'email': email.trim(),
-        'password': password,
-        'confirmPassword': password,
+      // Manejar si attributes viene null
+      if (attributes == null || attributes.isEmpty) {
+        _userInfo = {
+          'email': _cognitoUser.username,
+          'name': _cognitoUser.username?.split('@')[0] ?? 'Usuario',
+          'email_verified': 'false',
+          'custom:role': 'Estudiante',
+          'sub': '', // ID único del usuario
+          'given_name': '', // Nombre
+          'family_name': '', // Apellido
+        };
+        _userRole = 'Alumno';
+        return;
+      }
+
+      // Función auxiliar segura
+      String? getAttr(String key) {
+        final attr = attributes.firstWhere(
+          (a) => a.name == key,
+          orElse: () => CognitoUserAttribute(name: key, value: null),
+        );
+        return attr.value;
+      }
+
+      // OBTENER TODOS LOS ATRIBUTOS DE COGNITO
+      _userInfo = {
+        'email': _cognitoUser.username,
+        'email_verified': getAttr('email_verified') ?? 'false',
+        'name': getAttr('name') ?? '',
+        'given_name': getAttr('given_name') ?? '', // Marco Antonio
+        'family_name': getAttr('family_name') ?? '', // González Arias
+        'sub': getAttr('sub') ?? '', // 290939ce-2031-7051-846b-9bd220fa68af
+        'custom:role': getAttr('custom:role') ?? 'Alumno',
       };
 
-      final url = '$baseUrl/api/Auth/register';
-      print('🌐 POST: $url');
-      print('📤 Body: ${json.encode(registroData)}');
+      _userRole = _userInfo!['custom:role'] ?? 'Alumno';
 
-      final response = await http
-          .post(
-            Uri.parse(url),
-            headers: headers,
-            body: json.encode(registroData),
-          )
-          .timeout(const Duration(seconds: 15));
-
-      print('📥 Response status: ${response.statusCode}');
-      print('📥 Response body: ${response.body}');
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        print('Registro exitoso para: $email');
-        return true;
-      } else if (response.statusCode == 400) {
-        final errorData = json.decode(response.body);
-        print(
-            'Error de validación: ${errorData['message'] ?? 'Datos inválidos'}');
-        return false;
-      } else if (response.statusCode == 409) {
-        print('Usuario ya existe');
-        return false;
-      } else {
-        print('Error del servidor: ${response.statusCode}');
-        return false;
-      }
+      // Debug: ver todos los atributos obtenidos
+      print('=== ATRIBUTOS OBTENIDOS DE COGNITO ===');
+      print('Sub: ${_userInfo!['sub']}');
+      print('Email: ${_userInfo!['email']}');
+      print('Nombre completo: ${_userInfo!['name']}');
+      print('Given Name: ${_userInfo!['given_name']}');
+      print('Family Name: ${_userInfo!['family_name']}');
+      print('Rol: $_userRole');
+      print('=====================================');
     } catch (e) {
-      print('Error en registro: $e');
+      print('Error al obtener información del usuario: $e');
+
+      // Valores por defecto en caso de error
+      _userInfo = {
+        'email': _cognitoUser.username,
+        'name': _cognitoUser.username?.split('@')[0] ?? 'Usuario',
+        'email_verified': 'false',
+        'custom:role': 'Estudiante',
+        'sub': '',
+        'given_name': '',
+        'family_name': '',
+      };
+
+      _userRole = 'Alumno';
+    }
+  }
+
+  // REGISTRO CON COGNITO
+  Future<Map<String, dynamic>> registro(
+      String nombreCompleto, String email, String password) async {
+    try {
+      print('Intentando registro en Cognito para: $email');
+
+      final attributeList = [
+        AttributeArg(name: 'email', value: email),
+        AttributeArg(name: 'name', value: nombreCompleto),
+        AttributeArg(name: 'custom:role', value: 'Estudiante'),
+      ];
+
+      final data = await _userPool.signUp(
+        email,
+        password,
+        userAttributes: attributeList,
+      );
+
+      if (data.userConfirmed!) {
+        print('Usuario registrado y confirmado en Cognito');
+        return {'success': true, 'message': 'Registro exitoso'};
+      } else {
+        print('Usuario registrado pero requiere confirmación');
+        return {
+          'success': true,
+          'message':
+              'Registro exitoso. Verifica tu email para confirmar la cuenta.',
+          'requiresConfirmation': true
+        };
+      }
+    } on CognitoClientException catch (e) {
+      print('Error Cognito en registro: ${e.message}');
+      return {'success': false, 'message': _getCognitoErrorMessage(e)};
+    } catch (e) {
+      print('Error inesperado en registro: $e');
+      return {'success': false, 'message': 'Error en el registro: $e'};
+    }
+  }
+
+  // CONFIRMAR REGISTRO CON CÓDIGO
+  Future<bool> confirmarRegistro(
+      String email, String codigoConfirmacion) async {
+    try {
+      final user = CognitoUser(email, _userPool);
+      final confirmed = await user.confirmRegistration(codigoConfirmacion);
+
+      return confirmed;
+    } catch (e) {
+      print('Error al confirmar registro: $e');
       return false;
     }
   }
 
-  // VERIFICAR EMAIL (activación de cuenta)
-  Future<bool> verificarEmail(String token) async {
+  // REENVIAR CÓDIGO DE CONFIRMACIÓN
+  Future<bool> reenviarCodigoConfirmacion(String email) async {
     try {
-      print('Verificando email con token');
-
-      final url =
-          '$baseUrl/api/Auth/verify-email?token=${Uri.encodeComponent(token)}';
-      print('🌐 GET: $url');
-
-      final response = await http
-          .get(
-            Uri.parse(url),
-            headers: headers,
-          )
-          .timeout(const Duration(seconds: 10));
-
-      print('📥 Response status: ${response.statusCode}');
-
-      if (response.statusCode == 200) {
-        print('Email verificado exitosamente');
-        return true;
-      } else {
-        print('Error al verificar email: ${response.statusCode}');
-        return false;
-      }
+      final user = CognitoUser(email, _userPool);
+      await user.resendConfirmationCode();
+      return true;
     } catch (e) {
-      print('Error en verificación de email: $e');
+      print('Error al reenviar código: $e');
       return false;
     }
   }
 
-  // REFRESH TOKEN
-  Future<bool> refreshToken() async {
+  // RECUPERAR CONTRASEÑA
+  Future<Map<String, dynamic>> solicitarRecuperacionPassword(
+      String email) async {
     try {
-      if (_userToken == null) return false;
+      final user = CognitoUser(email, _userPool);
+      await user.forgotPassword();
 
-      print('Refrescando token');
-
-      final url = '$baseUrl/api/Auth/refresh-token';
-      print('🌐 POST: $url');
-
-      final response = await http
-          .post(
-            Uri.parse(url),
-            headers: headers,
-          )
-          .timeout(const Duration(seconds: 10));
-
-      print('📥 Response status: ${response.statusCode}');
-
-      if (response.statusCode == 200) {
-        final responseData = json.decode(response.body);
-        _userToken = responseData['token'];
-
-        await _guardarSesion();
-        notifyListeners();
-
-        print('Token refrescado exitosamente');
-        return true;
-      } else {
-        print('Error al refrescar token, cerrando sesión');
-        await logout();
-        return false;
-      }
+      return {
+        'success': true,
+        'message': 'Código de verificación enviado',
+      };
+    } on CognitoClientException catch (e) {
+      return {'success': false, 'message': _getCognitoErrorMessage(e)};
     } catch (e) {
-      print('Error en refresh token: $e');
-      await logout();
+      return {'success': false, 'message': 'Error: $e'};
+    }
+  }
+
+  // CONFIRMAR NUEVA CONTRASEÑA
+  Future<bool> confirmarRecuperacionPassword(
+      String email, String codigo, String nuevaPassword) async {
+    try {
+      final user = CognitoUser(email, _userPool);
+      await user.confirmPassword(codigo, nuevaPassword);
+      return true;
+    } catch (e) {
+      print('Error al confirmar recuperación: $e');
+      return false;
+    }
+  }
+
+  // CAMBIAR CONTRASEÑA (cuando ya está logueado)
+  Future<bool> cambiarPassword(
+      String passwordActual, String nuevaPassword) async {
+    try {
+      await _cognitoUser.changePassword(passwordActual, nuevaPassword);
+      return true;
+    } catch (e) {
+      print('Error al cambiar password: $e');
       return false;
     }
   }
@@ -256,19 +326,8 @@ class AuthService extends ChangeNotifier {
   // Logout
   Future<void> logout() async {
     try {
-      // Intentar logout en el servidor
-      if (_userToken != null) {
-        try {
-          final url = '$baseUrl/api/Auth/logout';
-          await http
-              .post(
-                Uri.parse(url),
-                headers: headers,
-              )
-              .timeout(const Duration(seconds: 5));
-        } catch (e) {
-          print('Error al hacer logout en servidor: $e');
-        }
+      if (_isAuthenticated) {
+        _cognitoUser.signOut();
       }
 
       final prefs = await SharedPreferences.getInstance();
@@ -277,6 +336,7 @@ class AuthService extends ChangeNotifier {
       await prefs.remove('userToken');
       await prefs.remove('userInfo');
       await prefs.remove('userRole');
+      await prefs.remove('userEmail');
 
       // Reset estado
       _isAuthenticated = false;
@@ -286,7 +346,7 @@ class AuthService extends ChangeNotifier {
 
       notifyListeners();
 
-      print('Logout exitoso');
+      print('Logout de Cognito exitoso');
     } catch (e) {
       print('Error en logout: $e');
     }
@@ -301,8 +361,9 @@ class AuthService extends ChangeNotifier {
         await prefs.setString('userToken', _userToken!);
         await prefs.setString('userInfo', json.encode(_userInfo!));
         await prefs.setString('userRole', _userRole!);
+        await prefs.setString('userEmail', _cognitoUser.username!);
 
-        print('Sesión guardada exitosamente');
+        print('Sesión Cognito guardada exitosamente');
       }
     } catch (e) {
       print('Error al guardar sesión: $e');
@@ -313,10 +374,8 @@ class AuthService extends ChangeNotifier {
   Future<void> _guardarCredenciales(String email, String password) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-
       await prefs.setString('saved_email', email);
       await prefs.setString('saved_password', password);
-
       print('Credenciales guardadas para recordar');
     } catch (e) {
       print('Error al guardar credenciales: $e');
@@ -327,17 +386,12 @@ class AuthService extends ChangeNotifier {
   Future<Map<String, String>?> obtenerCredencialesGuardadas() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-
       final email = prefs.getString('saved_email');
       final password = prefs.getString('saved_password');
 
       if (email != null && password != null) {
-        return {
-          'email': email,
-          'password': password,
-        };
+        return {'email': email, 'password': password};
       }
-
       return null;
     } catch (e) {
       print('Error al obtener credenciales guardadas: $e');
@@ -349,92 +403,15 @@ class AuthService extends ChangeNotifier {
   Future<void> limpiarCredencialesGuardadas() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-
       await prefs.remove('saved_email');
       await prefs.remove('saved_password');
-
       print('Credenciales guardadas eliminadas');
     } catch (e) {
       print('Error al limpiar credenciales: $e');
     }
   }
 
-  // Verificar si el token sigue siendo válido
-  Future<bool> verificarToken() async {
-    if (_userToken == null) return false;
-
-    try {
-      final url = '$baseUrl/api/Auth/validate-token';
-      print('🌐 GET: $url');
-
-      final response = await http
-          .get(
-            Uri.parse(url),
-            headers: headers,
-          )
-          .timeout(const Duration(seconds: 5));
-
-      print('📥 Token validation status: ${response.statusCode}');
-
-      if (response.statusCode == 200) {
-        return true;
-      } else if (response.statusCode == 401) {
-        // Token expirado, intentar refresh
-        return await refreshToken();
-      } else {
-        await logout();
-        return false;
-      }
-    } catch (e) {
-      print('Error al verificar token: $e');
-      // En caso de error de red, asumir que el token es válido temporalmente
-      return true;
-    }
-  }
-
-  // Obtener perfil del usuario actual
-  Future<Map<String, dynamic>?> obtenerPerfil() async {
-    try {
-      if (!_isAuthenticated) return null;
-
-      final url = '$baseUrl/api/Auth/profile';
-      print('🌐 GET: $url');
-
-      final response = await http
-          .get(
-            Uri.parse(url),
-            headers: headers,
-          )
-          .timeout(const Duration(seconds: 10));
-
-      print('📥 Profile response status: ${response.statusCode}');
-
-      if (response.statusCode == 200) {
-        final profileData = json.decode(response.body);
-
-        // Actualizar información local
-        _userInfo = {
-          ..._userInfo!,
-          ...profileData,
-        };
-
-        await _guardarSesion();
-        notifyListeners();
-
-        return profileData;
-      } else if (response.statusCode == 401) {
-        await logout();
-        return null;
-      }
-
-      return null;
-    } catch (e) {
-      print('Error al obtener perfil: $e');
-      return null;
-    }
-  }
-
-  // Obtener rol del usuario actual (igual que Angular)
+  // Obtener rol del usuario actual
   String? getCurrentUserRole() {
     return _userRole;
   }
@@ -444,64 +421,16 @@ class AuthService extends ChangeNotifier {
     return _userRole == role;
   }
 
-  // Obtener número de control (solo para estudiantes)
-  String? get numeroControl {
-    return _userInfo!['numeroControl'];
-  }
-
-  // Refrescar información del usuario
+  // Obtener información actualizada del usuario
   Future<void> refrescarUsuario() async {
-    if (!_isAuthenticated || _userToken == null) return;
+    if (!_isAuthenticated) return;
 
     try {
-      await obtenerPerfil();
+      await _obtenerInformacionUsuario();
+      await _guardarSesion();
+      notifyListeners();
     } catch (e) {
       print('Error al refrescar usuario: $e');
-    }
-  }
-
-  // Verificar conectividad con el servidor de autenticación
-  Future<bool> verificarConectividad() async {
-    try {
-      final url = '$baseUrl/api/Auth/health';
-      final response = await http
-          .get(
-            Uri.parse(url),
-            headers: headers,
-          )
-          .timeout(const Duration(seconds: 5));
-
-      return response.statusCode == 200;
-    } catch (e) {
-      print('Error de conectividad auth: $e');
-      return false;
-    }
-  }
-
-  // Método para cerrar todas las sesiones del usuario
-  Future<bool> cerrarTodasLasSesiones() async {
-    try {
-      if (!_isAuthenticated) return false;
-
-      final url = '$baseUrl/api/Auth/logout-all';
-      print('🌐 POST: $url');
-
-      final response = await http
-          .post(
-            Uri.parse(url),
-            headers: headers,
-          )
-          .timeout(const Duration(seconds: 10));
-
-      if (response.statusCode == 200) {
-        await logout(); // Cerrar sesión local también
-        return true;
-      }
-
-      return false;
-    } catch (e) {
-      print('Error al cerrar todas las sesiones: $e');
-      return false;
     }
   }
 
@@ -510,25 +439,25 @@ class AuthService extends ChangeNotifier {
     return email.endsWith('@chetumal.tecnm.mx') || email.endsWith('@tecnm.mx');
   }
 
-  // Obtener información del servidor de autenticación
-  Future<Map<String, dynamic>?> obtenerInfoServidor() async {
-    try {
-      final url = '$baseUrl/api/Auth/server-info';
-      final response = await http
-          .get(
-            Uri.parse(url),
-            headers: headers,
-          )
-          .timeout(const Duration(seconds: 5));
-
-      if (response.statusCode == 200) {
-        return json.decode(response.body);
-      }
-
-      return null;
-    } catch (e) {
-      print('Error al obtener info del servidor: $e');
-      return null;
+  // Método auxiliar para traducir errores de Cognito
+  String _getCognitoErrorMessage(CognitoClientException e) {
+    switch (e.code) {
+      case 'UsernameExistsException':
+        return 'El usuario ya existe';
+      case 'UserNotFoundException':
+        return 'Usuario no encontrado';
+      case 'NotAuthorizedException':
+        return 'Credenciales incorrectas';
+      case 'InvalidParameterException':
+        return 'Parámetros inválidos';
+      case 'CodeMismatchException':
+        return 'Código de verificación incorrecto';
+      case 'ExpiredCodeException':
+        return 'Código expirado';
+      case 'LimitExceededException':
+        return 'Límite de intentos excedido';
+      default:
+        return e.message ?? 'Error desconocido';
     }
   }
 
@@ -539,16 +468,8 @@ class AuthService extends ChangeNotifier {
       'hasToken': _userToken != null,
       'userRole': _userRole,
       'userName': userName,
-      'loginTime': _userInfo?['loginTime'],
+      'userEmail': userEmail,
       'lastActivity': DateTime.now().toIso8601String(),
     };
-  }
-
-  // Método para logging de eventos de autenticación
-  void _logAuthEvent(String event, Map<String, dynamic>? data) {
-    print('Auth Event: $event');
-    if (data != null) {
-      print('Data: ${json.encode(data)}');
-    }
   }
 }
