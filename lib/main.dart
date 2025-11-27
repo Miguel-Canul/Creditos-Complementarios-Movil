@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'screens/login_screen.dart';
-import 'screens/lista_asistencias_screen.dart';
 import 'screens/estudiante_dashboard_screen.dart';
 import 'services/api_service.dart';
 import 'services/auth_service.dart';
 import 'services/configuracion_service.dart';
+import 'repositories/actividad_repository.dart'; // Añadir esta importación
+import 'view_models/actividad_viewmodel.dart'; // Añadir esta importación
 import 'utils/constants.dart';
 
 void main() {
@@ -33,6 +33,10 @@ class MyApp extends StatelessWidget {
         ),
         Provider<ApiService>(
           create: (_) => ApiService(),
+        ),
+        // Añadir el provider del ViewModel de actividades
+        ChangeNotifierProvider<ActividadViewModel>(
+          create: (_) => ActividadViewModel(ActividadRepository()),
         ),
       ],
       child: Consumer2<AuthService, ConfiguracionService>(
@@ -64,7 +68,7 @@ class MyApp extends StatelessWidget {
                 : ThemeMode.light,
 
             // Navegación inicial basada en autenticación
-            home: EstudianteDashboardScreen(),
+            home: EstudianteDashboardScreen(), // Cambiar a AuthWrapper
           );
         },
       ),
@@ -131,7 +135,7 @@ class MyApp extends StatelessWidget {
       ),
 
       // Card theme
-      cardTheme: CardThemeData(
+      cardTheme: CardTheme(
         elevation: 4,
         margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         shape: RoundedRectangleBorder(
@@ -304,9 +308,6 @@ class _AuthWrapperState extends State<AuthWrapper> {
           switch (userRole) {
             case 'Estudiante':
               return EstudianteDashboardScreen();
-            case 'Encargado':
-            case 'Administrador':
-              return ListaAsistenciasScreen();
             default:
               return LoginScreen();
           }

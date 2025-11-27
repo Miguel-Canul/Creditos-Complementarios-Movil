@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/screens/historial_actividades_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../models/asistencia_detalle.dart';
@@ -11,16 +12,16 @@ import 'login_screen.dart';
 
 class EstudianteDashboardScreen extends StatefulWidget {
   @override
-  _EstudianteDashboardScreenState createState() => _EstudianteDashboardScreenState();
+  _EstudianteDashboardScreenState createState() =>
+      _EstudianteDashboardScreenState();
 }
 
-class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen> 
+class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
     with TickerProviderStateMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  
+
   List<AsistenciaDetalle> _misAsistencias = [];
   bool _isLoading = true;
-  String? _numeroControl;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
@@ -32,8 +33,7 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
       vsync: this,
     );
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOut)
-    );
+        CurvedAnimation(parent: _animationController, curve: Curves.easeOut));
     _obtenerNumeroControl();
     _cargarMisAsistencias();
   }
@@ -45,25 +45,24 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
   }
 
   void _obtenerNumeroControl() {
-    final authService = context.read<AuthService>();
-    setState(() {
-      _numeroControl = authService.numeroControl;
-    });
+    context.read<AuthService>();
+    setState(() {});
   }
 
   Future<void> _cargarMisAsistencias() async {
     if (_numeroControl == null) return;
-    
+
     setState(() => _isLoading = true);
-    
+
     final apiService = context.read<ApiService>();
-    final asistencias = await apiService.getAsistenciasPorEstudiante(_numeroControl!);
-    
+    final asistencias =
+        await apiService.getAsistenciasPorEstudiante(_numeroControl!);
+
     setState(() {
       _misAsistencias = asistencias;
       _isLoading = false;
     });
-    
+
     _animationController.forward();
   }
 
@@ -81,10 +80,10 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(context);
-              
+
               final authService = context.read<AuthService>();
               await authService.logout();
-              
+
               Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(builder: (context) => LoginScreen()),
@@ -111,10 +110,16 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
   // Estadísticas de mis asistencias
   Map<String, int> _calcularEstadisticas() {
     final total = _misAsistencias.length;
-    final asistio = _misAsistencias.where((a) => a.estadoAsistencia == Constants.estadoAsistio).length;
-    final noAsistio = _misAsistencias.where((a) => a.estadoAsistencia == Constants.estadoNoAsistio).length;
-    final justificado = _misAsistencias.where((a) => a.estadoAsistencia == Constants.estadoJustificado).length;
-    
+    final asistio = _misAsistencias
+        .where((a) => a.estadoAsistencia == Constants.estadoAsistio)
+        .length;
+    final noAsistio = _misAsistencias
+        .where((a) => a.estadoAsistencia == Constants.estadoNoAsistio)
+        .length;
+    final justificado = _misAsistencias
+        .where((a) => a.estadoAsistencia == Constants.estadoJustificado)
+        .length;
+
     return {
       'total': total,
       'asistio': asistio,
@@ -179,11 +184,8 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
                         height: 60,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
-                          return Icon(
-                            Icons.person, 
-                            size: 35, 
-                            color: Color(Constants.primaryColor)
-                          );
+                          return Icon(Icons.person,
+                              size: 35, color: Color(Constants.primaryColor));
                         },
                       ),
                     ),
@@ -206,7 +208,8 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
                           ),
                           SizedBox(height: 4),
                           Container(
-                            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
                               color: Colors.white.withOpacity(0.2),
                               borderRadius: BorderRadius.circular(12),
@@ -248,7 +251,8 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
     );
   }
 
-  Widget _buildDrawerItem(IconData icon, String title, bool isSelected, {VoidCallback? onTap}) {
+  Widget _buildDrawerItem(IconData icon, String title, bool isSelected,
+      {VoidCallback? onTap}) {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
@@ -300,7 +304,6 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
                     icon: Icon(Icons.menu, color: Colors.white, size: 28),
                     onPressed: () => _scaffoldKey.currentState?.openDrawer(),
                   ),
-                  
                   Expanded(
                     child: Center(
                       child: Text(
@@ -313,7 +316,6 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
                       ),
                     ),
                   ),
-                  
                   Container(
                     padding: EdgeInsets.all(6),
                     decoration: BoxDecoration(
@@ -328,7 +330,7 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
                       ],
                     ),
                     child: Image.asset(
-                      'assets/images/logo-tecnm.png',
+                      'assets/images/logo_tecnm.jpeg',
                       width: 32,
                       height: 32,
                       fit: BoxFit.contain,
@@ -422,7 +424,7 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
                   borderRadius: BorderRadius.circular(40),
                 ),
                 child: Image.asset(
-                  'assets/images/estudiante-welcome.png',
+                  'assets/images/Estudiante.jpeg',
                   width: 60,
                   height: 60,
                   fit: BoxFit.contain,
@@ -444,7 +446,7 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
 
   Widget _buildStatsSection() {
     final stats = _calcularEstadisticas();
-    
+
     return SliverToBoxAdapter(
       child: FadeTransition(
         opacity: _fadeAnimation,
@@ -514,7 +516,8 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+  Widget _buildStatCard(
+      String title, String value, IconData icon, Color color) {
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -555,7 +558,7 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
 
   Widget _buildRecentActivitiesSection() {
     final actividadesRecientes = _obtenerActividadesRecientes();
-    
+
     return SliverToBoxAdapter(
       child: FadeTransition(
         opacity: _fadeAnimation,
@@ -591,7 +594,6 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
                 ],
               ),
               SizedBox(height: 12),
-              
               if (_isLoading)
                 Center(
                   child: Padding(
@@ -605,9 +607,9 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
                 _buildEmptyState()
               else
                 Column(
-                  children: actividadesRecientes.map((actividad) => 
-                    _buildActivityCard(actividad)
-                  ).toList(),
+                  children: actividadesRecientes
+                      .map((actividad) => _buildActivityCard(actividad))
+                      .toList(),
                 ),
             ],
           ),
@@ -672,7 +674,7 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
   Widget _buildActivityCard(AsistenciaDetalle actividad) {
     Color estadoColor = _getEstadoColor(actividad.estadoAsistencia);
     IconData estadoIcon = _getEstadoIcon(actividad.estadoAsistencia);
-    
+
     return Container(
       margin: EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -704,9 +706,9 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
                 size: 24,
               ),
             ),
-            
+
             SizedBox(width: 16),
-            
+
             // Información de la actividad
             Expanded(
               child: Column(
@@ -732,7 +734,8 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
                   ),
                   SizedBox(height: 4),
                   Text(
-                    DateFormat('dd MMM yyyy, HH:mm').format(actividad.fechaHora),
+                    DateFormat('dd MMM yyyy, HH:mm')
+                        .format(actividad.fechaHora),
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.grey[500],
@@ -741,7 +744,7 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
                 ],
               ),
             ),
-            
+
             // Estado de asistencia
             Container(
               padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
