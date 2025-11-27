@@ -446,7 +446,7 @@ class AuthService extends ChangeNotifier {
 
   // Obtener número de control (solo para estudiantes)
   String? get numeroControl {
-      return _userInfo!['numeroControl'];
+    return _userInfo!['numeroControl'];
   }
 
   // Refrescar información del usuario

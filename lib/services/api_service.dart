@@ -43,14 +43,13 @@ class ApiService {
         final Map<String, dynamic> datosCreditos = respuestaJson['data'];
         return datosCreditos['creditosObtenidos'] as double;
       }
-      
+
       // Si 'data' es nulo o no contiene un número, devolvemos 0
       return 0;
-
     } catch (e) {
       print('Error al obtener créditos: $e');
       // Relanza la excepción para que el consumidor la maneje.
-      rethrow; 
+      rethrow;
     }
   }
 
@@ -69,9 +68,9 @@ class ApiService {
 
       // 3. Manejo de códigos de respuesta especiales
       if (respuesta.statusCode == 204) {
-        return null; 
+        return null;
       }
-      
+
       // 4. Manejo de Errores HTTP
       _handleError(respuesta);
 
@@ -80,20 +79,19 @@ class ApiService {
 
       // 6. Extracción de la URL
       if (respuestaJson['data'] != null) {
-        final Map<String, dynamic> datosConstancia = respuestaJson['data']; 
-        
+        final Map<String, dynamic> datosConstancia = respuestaJson['data'];
+
         // El valor extraído de la clave 'constanciaUrl' debe ser casteado a String.
         // Usamos String? por si la clave estuviera ausente.
         return datosConstancia['constanciaUrl'] as String?;
       }
-      
+
       // Si el JSON es 200 pero 'data' está vacío, devolvemos null.
       return null;
-
     } catch (e) {
       print('Error al obtener URL de constancia: $e');
       // Relanza la excepción para que el consumidor la maneje.
-      rethrow; 
+      rethrow;
     }
   }
 
@@ -121,13 +119,13 @@ class ApiService {
       // 6. Conversión de la lista de JSONs a la lista de modelos Dart
       // Utiliza el constructor ActividadInscripcion.fromJson
       return datosJson
-          .map((json) => ActividadInscripcion.fromJson(json as Map<String, dynamic>))
+          .map((json) =>
+              ActividadInscripcion.fromJson(json as Map<String, dynamic>))
           .toList();
-
     } catch (e) {
       print('Error al obtener actividades disponibles: $e');
       // Relanza la excepción para que el consumidor la maneje.
-      rethrow; 
+      rethrow;
     }
   }
 }
