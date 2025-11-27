@@ -4,6 +4,8 @@ import '../services/auth_service.dart';
 import '../utils/constants.dart';
 
 class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
@@ -31,13 +33,13 @@ class _LoginScreenState extends State<LoginScreen>
 
     // Animaciones principales
     _animationController = AnimationController(
-      duration: Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
 
     // Animación de error (shake)
     _shakeAnimationController = AnimationController(
-      duration: Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 600),
       vsync: this,
     );
 
@@ -46,7 +48,7 @@ class _LoginScreenState extends State<LoginScreen>
       end: 1.0,
     ).animate(CurvedAnimation(
       parent: _animationController,
-      curve: Interval(0.0, 0.6, curve: Curves.easeOut),
+      curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
     ));
 
     _slideAnimation = Tween<double>(
@@ -54,7 +56,7 @@ class _LoginScreenState extends State<LoginScreen>
       end: 0.0,
     ).animate(CurvedAnimation(
       parent: _animationController,
-      curve: Interval(0.2, 0.8, curve: Curves.easeOut),
+      curve: const Interval(0.2, 0.8, curve: Curves.easeOut),
     ));
 
     _shakeAnimation = Tween<double>(
@@ -113,9 +115,16 @@ class _LoginScreenState extends State<LoginScreen>
       setState(() => _isLoading = false);
 
       if (success) {
-        // Navegación exitosa - Aquí puedes agregar la navegación a la pantalla principal
-        // Ejemplo: Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => HomeScreen()));
-        print('Login exitoso');
+        // Navegación exitosa - Aquí debes reemplazar con tu pantalla principal
+        // Por ejemplo: Navigator.pushReplacementNamed(context, '/home');
+        // O: Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomeScreen()));
+        print('Login exitoso - Redirigiendo a pantalla principal...');
+
+        // TODO: Reemplaza esto con tu navegación a la pantalla principal
+        // Navigator.pushReplacement(
+        //   context,
+        //   MaterialPageRoute(builder: (context) => TuPantallaPrincipal()),
+        // );
       } else {
         setState(() {
           _errorMessage =
@@ -137,18 +146,6 @@ class _LoginScreenState extends State<LoginScreen>
     _shakeAnimationController.forward();
   }
 
-  void _navegarARegistro() {
-    // Aquí puedes agregar la navegación a la pantalla de registro
-    // Ejemplo: Navigator.push(context, MaterialPageRoute(builder: (_) => RegisterScreen()));
-    print('Navegar a registro');
-  }
-
-  void _navegarAOlvidarPassword() {
-    // Aquí puedes agregar la navegación a la pantalla de olvidar contraseña
-    // Ejemplo: Navigator.push(context, MaterialPageRoute(builder: (_) => ForgotPasswordScreen()));
-    print('Navegar a olvidar contraseña');
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -162,16 +159,16 @@ class _LoginScreenState extends State<LoginScreen>
               return Transform.translate(
                 offset: Offset(0, _slideAnimation.value),
                 child: SingleChildScrollView(
-                  padding: EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
 
                       // Logo y título
                       _buildHeader(),
 
-                      SizedBox(height: 40),
+                      const SizedBox(height: 40),
 
                       // Formulario de login
                       AnimatedBuilder(
@@ -189,22 +186,22 @@ class _LoginScreenState extends State<LoginScreen>
                         },
                       ),
 
-                      SizedBox(height: 30),
+                      const SizedBox(height: 30),
 
                       // Botón de login
                       _buildLoginButton(),
 
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
 
                       // Divider
                       _buildDivider(),
 
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
 
                       // Enlaces de navegación
                       _buildNavigationLinks(),
 
-                      SizedBox(height: 40),
+                      const SizedBox(height: 40),
                     ],
                   ),
                 ),
@@ -224,13 +221,13 @@ class _LoginScreenState extends State<LoginScreen>
           width: 120,
           height: 120,
           decoration: BoxDecoration(
-            color: Color(Constants.primaryColor).withOpacity(0.1),
+            color: const Color(Constants.primaryColor).withOpacity(0.1),
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: Color(Constants.primaryColor).withOpacity(0.2),
+                color: const Color(Constants.primaryColor).withOpacity(0.2),
                 blurRadius: 20,
-                offset: Offset(0, 10),
+                offset: const Offset(0, 10),
               ),
             ],
           ),
@@ -241,7 +238,7 @@ class _LoginScreenState extends State<LoginScreen>
               height: 80,
               fit: BoxFit.contain,
               errorBuilder: (context, error, stackTrace) {
-                return Icon(
+                return const Icon(
                   Icons.school,
                   size: 60,
                   color: Color(Constants.primaryColor),
@@ -251,10 +248,10 @@ class _LoginScreenState extends State<LoginScreen>
           ),
         ),
 
-        SizedBox(height: 24),
+        const SizedBox(height: 24),
 
         // Título principal
-        Text(
+        const Text(
           'Bienvenido',
           style: TextStyle(
             fontSize: 32,
@@ -265,7 +262,7 @@ class _LoginScreenState extends State<LoginScreen>
           textAlign: TextAlign.center,
         ),
 
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
 
         // Subtítulo
         Text(
@@ -294,7 +291,7 @@ class _LoginScreenState extends State<LoginScreen>
                 BoxShadow(
                   color: Colors.black.withOpacity(0.05),
                   blurRadius: 10,
-                  offset: Offset(0, 5),
+                  offset: const Offset(0, 5),
                 ),
               ],
             ),
@@ -306,13 +303,13 @@ class _LoginScreenState extends State<LoginScreen>
                 labelText: 'Correo electrónico',
                 hintText: 'tu.email@chetumal.tecnm.mx',
                 prefixIcon: Container(
-                  margin: EdgeInsets.all(12),
-                  padding: EdgeInsets.all(8),
+                  margin: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Color(Constants.primaryColor).withOpacity(0.1),
+                    color: const Color(Constants.primaryColor).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.email_outlined,
                     color: Color(Constants.primaryColor),
                     size: 20,
@@ -330,16 +327,16 @@ class _LoginScreenState extends State<LoginScreen>
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(
+                  borderSide: const BorderSide(
                       color: Color(Constants.primaryColor), width: 2),
                 ),
                 errorBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide:
-                      BorderSide(color: Color(Constants.dangerColor), width: 2),
+                  borderSide: const BorderSide(
+                      color: Color(Constants.dangerColor), width: 2),
                 ),
                 contentPadding:
-                    EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -353,7 +350,7 @@ class _LoginScreenState extends State<LoginScreen>
             ),
           ),
 
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
 
           // Campo de contraseña
           Container(
@@ -363,7 +360,7 @@ class _LoginScreenState extends State<LoginScreen>
                 BoxShadow(
                   color: Colors.black.withOpacity(0.05),
                   blurRadius: 10,
-                  offset: Offset(0, 5),
+                  offset: const Offset(0, 5),
                 ),
               ],
             ),
@@ -376,13 +373,13 @@ class _LoginScreenState extends State<LoginScreen>
                 labelText: 'Contraseña',
                 hintText: 'Ingresa tu contraseña',
                 prefixIcon: Container(
-                  margin: EdgeInsets.all(12),
-                  padding: EdgeInsets.all(8),
+                  margin: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Color(Constants.primaryColor).withOpacity(0.1),
+                    color: const Color(Constants.primaryColor).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.lock_outlined,
                     color: Color(Constants.primaryColor),
                     size: 20,
@@ -411,16 +408,16 @@ class _LoginScreenState extends State<LoginScreen>
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(
+                  borderSide: const BorderSide(
                       color: Color(Constants.primaryColor), width: 2),
                 ),
                 errorBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide:
-                      BorderSide(color: Color(Constants.dangerColor), width: 2),
+                  borderSide: const BorderSide(
+                      color: Color(Constants.dangerColor), width: 2),
                 ),
                 contentPadding:
-                    EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -434,7 +431,7 @@ class _LoginScreenState extends State<LoginScreen>
             ),
           ),
 
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
 
           // Recordarme y error message
           Column(
@@ -449,7 +446,7 @@ class _LoginScreenState extends State<LoginScreen>
                       onChanged: (value) {
                         setState(() => _rememberMe = value ?? false);
                       },
-                      activeColor: Color(Constants.primaryColor),
+                      activeColor: const Color(Constants.primaryColor),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(4),
                       ),
@@ -467,28 +464,29 @@ class _LoginScreenState extends State<LoginScreen>
 
               // Mensaje de error
               if (_errorMessage != null) ...[
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 Container(
-                  padding: EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Color(Constants.dangerColor).withOpacity(0.1),
+                    color: const Color(Constants.dangerColor).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: Color(Constants.dangerColor).withOpacity(0.3),
+                      color:
+                          const Color(Constants.dangerColor).withOpacity(0.3),
                     ),
                   ),
                   child: Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.error_outline,
                         color: Color(Constants.dangerColor),
                         size: 20,
                       ),
-                      SizedBox(width: 8),
+                      const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           _errorMessage!,
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: Color(Constants.dangerColor),
                             fontSize: 13,
                             fontWeight: FontWeight.w500,
@@ -513,17 +511,17 @@ class _LoginScreenState extends State<LoginScreen>
         borderRadius: BorderRadius.circular(16),
         gradient: LinearGradient(
           colors: [
-            Color(Constants.primaryColor),
-            Color(Constants.primaryColor).withOpacity(0.8),
+            const Color(Constants.primaryColor),
+            const Color(Constants.primaryColor).withOpacity(0.8),
           ],
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
         ),
         boxShadow: [
           BoxShadow(
-            color: Color(Constants.primaryColor).withOpacity(0.3),
+            color: const Color(Constants.primaryColor).withOpacity(0.3),
             blurRadius: 15,
-            offset: Offset(0, 8),
+            offset: const Offset(0, 8),
           ),
         ],
       ),
@@ -537,7 +535,7 @@ class _LoginScreenState extends State<LoginScreen>
           ),
         ),
         child: _isLoading
-            ? Row(
+            ? const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   SizedBox(
@@ -559,7 +557,7 @@ class _LoginScreenState extends State<LoginScreen>
                   ),
                 ],
               )
-            : Text(
+            : const Text(
                 'Iniciar Sesión',
                 style: TextStyle(
                   fontSize: 16,
@@ -581,7 +579,7 @@ class _LoginScreenState extends State<LoginScreen>
           ),
         ),
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
             'o',
             style: TextStyle(
@@ -610,40 +608,8 @@ class _LoginScreenState extends State<LoginScreen>
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: Color(Constants.primaryColor),
+              color: const Color(Constants.primaryColor),
               width: 2,
-            ),
-          ),
-          child: OutlinedButton(
-            onPressed: _navegarARegistro,
-            style: OutlinedButton.styleFrom(
-              side: BorderSide.none,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
-            child: Text(
-              'Crear Nueva Cuenta',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Color(Constants.primaryColor),
-              ),
-            ),
-          ),
-        ),
-
-        SizedBox(height: 16),
-
-        // Link olvidar contraseña
-        TextButton(
-          onPressed: _navegarAOlvidarPassword,
-          child: Text(
-            '¿Olvidaste tu contraseña?',
-            style: TextStyle(
-              color: Color(Constants.primaryColor),
-              fontWeight: FontWeight.w500,
-              fontSize: 14,
             ),
           ),
         ),

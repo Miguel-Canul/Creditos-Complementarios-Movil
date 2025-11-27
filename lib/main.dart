@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'screens/login_screen.dart';
-import 'screens/estudiante_dashboard_screen.dart';
+import 'screens/estudiante_dashboard/estudiante_dashboard_screen.dart';
 import 'services/api_service.dart';
 import 'services/auth_service.dart';
 import 'services/configuracion_service.dart';
@@ -17,7 +17,7 @@ void main() {
     }
   };
 
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -70,7 +70,7 @@ class MyApp extends StatelessWidget {
                 : ThemeMode.light,
 
             // Navegación inicial basada en autenticación
-            home: const EstudianteDashboardScreen(), // Cambiar a AuthWrapper
+            home: const EstudianteDashboardScreen(),
           );
         },
       ),
@@ -102,7 +102,7 @@ class MyApp extends StatelessWidget {
 
     return ThemeData(
       brightness: brightness,
-      primarySwatch: MaterialColor(
+      primarySwatch: const MaterialColor(
         Constants.primaryColor,
         <int, Color>{
           50: const Color(0xFFE3F2FD),
@@ -208,7 +208,7 @@ class MyApp extends StatelessWidget {
         }),
         trackColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return primaryColor.withOpacity(0.5);
+            return primaryColor.withAlpha(50);
           }
           return null;
         }),
@@ -314,10 +314,10 @@ class _AuthWrapperState extends State<AuthWrapper> {
             case 'Estudiante':
               return const EstudianteDashboardScreen();
             default:
-              return LoginScreen();
+              return const LoginScreen();
           }
         } else {
-          return LoginScreen();
+          return const LoginScreen();
         }
       },
     );
