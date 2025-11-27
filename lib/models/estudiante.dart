@@ -1,27 +1,51 @@
+import 'package:mobile/services/auth_service.dart';
+
 class Estudiante {
-  final String numeroControl;
-  final String nombre;
-  final String carrera;
+  final String sub; // ID único
+  final String numeroControl; // Del email: l21390301
+  final String nombreCompleto; // given_name + family_name
+  final String email;
+  final String? givenName;
+  final String? familyName;
+  final String rol;
 
   Estudiante({
+    required this.sub,
     required this.numeroControl,
-    required this.nombre,
-    required this.carrera,
+    required this.nombreCompleto,
+    required this.email,
+    this.givenName,
+    this.familyName,
+    required this.rol,
   });
 
-  factory Estudiante.fromJson(Map<String, dynamic> json) {
+  // Factory constructor desde AuthService
+  factory Estudiante.fromAuthService(AuthService auth) {
     return Estudiante(
-      numeroControl: json['numeroControl'] ?? '',
-      nombre: json['nombre'] ?? '',
-      carrera: json['carrera'] ?? '',
+      sub: auth.userSub ?? '',
+      numeroControl: auth.userNumeroControl ?? '',
+      nombreCompleto: auth.userNombreCompleto ?? auth.userName ?? '',
+      email: auth.userEmail ?? '',
+      givenName: auth.userGivenName,
+      familyName: auth.userFamilyName,
+      rol: auth.userRole ?? 'Estudiante',
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
+      'sub': sub,
       'numeroControl': numeroControl,
-      'nombre': nombre,
-      'carrera': carrera,
+      'nombreCompleto': nombreCompleto,
+      'email': email,
+      'givenName': givenName,
+      'familyName': familyName,
+      'rol': rol,
     };
+  }
+
+  @override
+  String toString() {
+    return 'Estudiante(sub: $sub, numeroControl: $numeroControl, nombre: $nombreCompleto, email: $email, rol: $rol)';
   }
 }

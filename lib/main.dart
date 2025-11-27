@@ -70,7 +70,7 @@ class MyApp extends StatelessWidget {
                 : ThemeMode.light,
 
             // Navegación inicial basada en autenticación
-            home: const EstudianteDashboardScreen(),
+            home: const LoginScreen(),
           );
         },
       ),

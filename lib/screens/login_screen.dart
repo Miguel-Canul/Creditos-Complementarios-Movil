@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/screens/estudiante_dashboard/estudiante_dashboard_screen.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import '../utils/constants.dart';
@@ -106,7 +107,7 @@ class _LoginScreenState extends State<LoginScreen>
 
     try {
       final authService = context.read<AuthService>();
-      final success = await authService.login(
+      final result = await authService.login(
         _emailController.text.trim(),
         _passwordController.text,
         _rememberMe,
@@ -114,20 +115,20 @@ class _LoginScreenState extends State<LoginScreen>
 
       setState(() => _isLoading = false);
 
-      if (success) {
-        // Navegación exitosa - Aquí debes reemplazar con tu pantalla principal
-        // Por ejemplo: Navigator.pushReplacementNamed(context, '/home');
-        // O: Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomeScreen()));
-        print('Login exitoso - Redirigiendo a pantalla principal...');
+      final success = result['success'] == true;
 
-        // TODO: Reemplaza esto con tu navegación a la pantalla principal
-        // Navigator.pushReplacement(
-        //   context,
-        //   MaterialPageRoute(builder: (context) => TuPantallaPrincipal()),
-        // );
+      if (success) {
+        print('Login exitoso - Redirigiendo a pantalla de Estudiante...');
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const EstudianteDashboardScreen(),
+          ),
+        );
       } else {
         setState(() {
-          _errorMessage =
+          _errorMessage = result['message'] ??
               'Credenciales incorrectas. Verifica tu email y contraseña.';
         });
         _triggerShakeAnimation();
@@ -610,6 +611,41 @@ class _LoginScreenState extends State<LoginScreen>
             border: Border.all(
               color: const Color(Constants.primaryColor),
               width: 2,
+            ),
+          ),
+          child: TextButton(
+            onPressed: () {
+              // Por el momento no hace nada
+            },
+            style: TextButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            child: const Text(
+              'Crear nueva cuenta',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Color(Constants.primaryColor),
+              ),
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 16),
+
+        // Enlace de olvidé contraseña
+        TextButton(
+          onPressed: () {
+            // Por el momento no hace nada
+          },
+          child: const Text(
+            '¿Olvidaste tu contraseña?',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Color(Constants.primaryColor),
             ),
           ),
         ),
