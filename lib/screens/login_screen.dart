@@ -2,26 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import '../utils/constants.dart';
-import 'lista_asistencias_screen.dart';
-import 'registro_screen.dart';
-import 'forgot_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> 
+class _LoginScreenState extends State<LoginScreen>
     with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  
+
   bool _obscurePassword = true;
   bool _rememberMe = false;
   bool _isLoading = false;
   String? _errorMessage;
-  
+
   late AnimationController _animationController;
   late AnimationController _shakeAnimationController;
   late Animation<double> _fadeAnimation;
@@ -31,19 +28,19 @@ class _LoginScreenState extends State<LoginScreen>
   @override
   void initState() {
     super.initState();
-    
+
     // Animaciones principales
     _animationController = AnimationController(
       duration: Duration(milliseconds: 1200),
       vsync: this,
     );
-    
+
     // Animación de error (shake)
     _shakeAnimationController = AnimationController(
       duration: Duration(milliseconds: 600),
       vsync: this,
     );
-    
+
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -51,7 +48,7 @@ class _LoginScreenState extends State<LoginScreen>
       parent: _animationController,
       curve: Interval(0.0, 0.6, curve: Curves.easeOut),
     ));
-    
+
     _slideAnimation = Tween<double>(
       begin: 50.0,
       end: 0.0,
@@ -59,7 +56,7 @@ class _LoginScreenState extends State<LoginScreen>
       parent: _animationController,
       curve: Interval(0.2, 0.8, curve: Curves.easeOut),
     ));
-    
+
     _shakeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -67,7 +64,7 @@ class _LoginScreenState extends State<LoginScreen>
       parent: _shakeAnimationController,
       curve: Curves.elasticIn,
     ));
-    
+
     _animationController.forward();
     _cargarCredencialesGuardadas();
   }
@@ -84,7 +81,7 @@ class _LoginScreenState extends State<LoginScreen>
   Future<void> _cargarCredencialesGuardadas() async {
     final authService = context.read<AuthService>();
     final credenciales = await authService.obtenerCredencialesGuardadas();
-    
+
     if (credenciales != null) {
       setState(() {
         _emailController.text = credenciales['email'] ?? '';
@@ -116,32 +113,13 @@ class _LoginScreenState extends State<LoginScreen>
       setState(() => _isLoading = false);
 
       if (success) {
-        // Navegación exitosa
-        Navigator.pushReplacement(
-          context,
-          PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) => 
-                ListaAsistenciasScreen(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-              const begin = Offset(1.0, 0.0);
-              const end = Offset.zero;
-              const curve = Curves.easeInOut;
-              
-              var tween = Tween(begin: begin, end: end).chain(
-                CurveTween(curve: curve),
-              );
-              
-              return SlideTransition(
-                position: animation.drive(tween),
-                child: child,
-              );
-            },
-            transitionDuration: Duration(milliseconds: 500),
-          ),
-        );
+        // Navegación exitosa - Aquí puedes agregar la navegación a la pantalla principal
+        // Ejemplo: Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => HomeScreen()));
+        print('Login exitoso');
       } else {
         setState(() {
-          _errorMessage = 'Credenciales incorrectas. Verifica tu email y contraseña.';
+          _errorMessage =
+              'Credenciales incorrectas. Verifica tu email y contraseña.';
         });
         _triggerShakeAnimation();
       }
@@ -160,53 +138,15 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   void _navegarARegistro() {
-    Navigator.push(
-      context,
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => 
-            RegistroScreen(),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          const begin = Offset(1.0, 0.0);
-          const end = Offset.zero;
-          const curve = Curves.easeInOut;
-          
-          var tween = Tween(begin: begin, end: end).chain(
-            CurveTween(curve: curve),
-          );
-          
-          return SlideTransition(
-            position: animation.drive(tween),
-            child: child,
-          );
-        },
-        transitionDuration: Duration(milliseconds: 300),
-      ),
-    );
+    // Aquí puedes agregar la navegación a la pantalla de registro
+    // Ejemplo: Navigator.push(context, MaterialPageRoute(builder: (_) => RegisterScreen()));
+    print('Navegar a registro');
   }
 
   void _navegarAOlvidarPassword() {
-    Navigator.push(
-      context,
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => 
-            ForgotPasswordScreen(),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          const begin = Offset(0.0, 1.0);
-          const end = Offset.zero;
-          const curve = Curves.easeInOut;
-          
-          var tween = Tween(begin: begin, end: end).chain(
-            CurveTween(curve: curve),
-          );
-          
-          return SlideTransition(
-            position: animation.drive(tween),
-            child: child,
-          );
-        },
-        transitionDuration: Duration(milliseconds: 300),
-      ),
-    );
+    // Aquí puedes agregar la navegación a la pantalla de olvidar contraseña
+    // Ejemplo: Navigator.push(context, MaterialPageRoute(builder: (_) => ForgotPasswordScreen()));
+    print('Navegar a olvidar contraseña');
   }
 
   @override
@@ -227,42 +167,43 @@ class _LoginScreenState extends State<LoginScreen>
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       SizedBox(height: 20),
-                      
+
                       // Logo y título
                       _buildHeader(),
-                      
+
                       SizedBox(height: 40),
-                      
+
                       // Formulario de login
                       AnimatedBuilder(
                         animation: _shakeAnimation,
                         builder: (context, child) {
                           return Transform.translate(
                             offset: Offset(
-                              _shakeAnimation.value * 10 * 
-                              (0.5 - (0.5 * _shakeAnimation.value)),
+                              _shakeAnimation.value *
+                                  10 *
+                                  (0.5 - (0.5 * _shakeAnimation.value)),
                               0,
                             ),
                             child: _buildLoginForm(),
                           );
                         },
                       ),
-                      
+
                       SizedBox(height: 30),
-                      
+
                       // Botón de login
                       _buildLoginButton(),
-                      
+
                       SizedBox(height: 20),
-                      
+
                       // Divider
                       _buildDivider(),
-                      
+
                       SizedBox(height: 20),
-                      
+
                       // Enlaces de navegación
                       _buildNavigationLinks(),
-                      
+
                       SizedBox(height: 40),
                     ],
                   ),
@@ -309,9 +250,9 @@ class _LoginScreenState extends State<LoginScreen>
             ),
           ),
         ),
-        
+
         SizedBox(height: 24),
-        
+
         // Título principal
         Text(
           'Bienvenido',
@@ -323,9 +264,9 @@ class _LoginScreenState extends State<LoginScreen>
           ),
           textAlign: TextAlign.center,
         ),
-        
+
         SizedBox(height: 8),
-        
+
         // Subtítulo
         Text(
           'Sistema de Gestión de Asistencias TecNM',
@@ -389,13 +330,16 @@ class _LoginScreenState extends State<LoginScreen>
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: Color(Constants.primaryColor), width: 2),
+                  borderSide: BorderSide(
+                      color: Color(Constants.primaryColor), width: 2),
                 ),
                 errorBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: Color(Constants.dangerColor), width: 2),
+                  borderSide:
+                      BorderSide(color: Color(Constants.dangerColor), width: 2),
                 ),
-                contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -408,9 +352,9 @@ class _LoginScreenState extends State<LoginScreen>
               },
             ),
           ),
-          
+
           SizedBox(height: 20),
-          
+
           // Campo de contraseña
           Container(
             decoration: BoxDecoration(
@@ -446,7 +390,9 @@ class _LoginScreenState extends State<LoginScreen>
                 ),
                 suffixIcon: IconButton(
                   icon: Icon(
-                    _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                    _obscurePassword
+                        ? Icons.visibility_outlined
+                        : Icons.visibility_off_outlined,
                     color: Colors.grey[600],
                   ),
                   onPressed: () {
@@ -465,13 +411,16 @@ class _LoginScreenState extends State<LoginScreen>
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: Color(Constants.primaryColor), width: 2),
+                  borderSide: BorderSide(
+                      color: Color(Constants.primaryColor), width: 2),
                 ),
                 errorBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: Color(Constants.dangerColor), width: 2),
+                  borderSide:
+                      BorderSide(color: Color(Constants.dangerColor), width: 2),
                 ),
-                contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -484,9 +433,9 @@ class _LoginScreenState extends State<LoginScreen>
               },
             ),
           ),
-          
+
           SizedBox(height: 16),
-          
+
           // Recordarme y error message
           Column(
             children: [
@@ -515,7 +464,7 @@ class _LoginScreenState extends State<LoginScreen>
                   ),
                 ],
               ),
-              
+
               // Mensaje de error
               if (_errorMessage != null) ...[
                 SizedBox(height: 12),
@@ -683,9 +632,9 @@ class _LoginScreenState extends State<LoginScreen>
             ),
           ),
         ),
-        
+
         SizedBox(height: 16),
-        
+
         // Link olvidar contraseña
         TextButton(
           onPressed: _navegarAOlvidarPassword,
