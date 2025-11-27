@@ -75,23 +75,25 @@ class ConfiguracionEncargado {
       tamanoTexto: json['tamanoTexto'] ?? 'normal',
       vistaDashboard: json['vistaDashboard'] ?? 'tabla',
       registrosPorPagina: json['registrosPorPagina'] ?? 20,
-      columnasVisibles: Map<String, bool>.from(json['columnasVisibles'] ?? {
-        'numeroControl': true,
-        'nombreEstudiante': true,
-        'carreraEstudiante': true,
-        'extraescolarTaller': true,
-        'encargado': true,
-        'nombreActividad': true,
-        'fechaHora': true,
-        'estadoAsistencia': true,
-        'acciones': true,
-      }),
+      columnasVisibles: Map<String, bool>.from(json['columnasVisibles'] ??
+          {
+            'numeroControl': true,
+            'nombreEstudiante': true,
+            'carreraEstudiante': true,
+            'extraescolarTaller': true,
+            'encargado': true,
+            'nombreActividad': true,
+            'fechaHora': true,
+            'estadoAsistencia': true,
+            'acciones': true,
+          }),
     );
   }
 }
 
 class ConfiguracionService extends ChangeNotifier {
-  static final ConfiguracionService _instance = ConfiguracionService._internal();
+  static final ConfiguracionService _instance =
+      ConfiguracionService._internal();
   factory ConfiguracionService() => _instance;
   ConfiguracionService._internal();
 
@@ -99,7 +101,8 @@ class ConfiguracionService extends ChangeNotifier {
   String userRole = '';
 
   // Configuraciones por defecto
-  final ConfiguracionEstudiante _configPorDefectoEstudiante = ConfiguracionEstudiante(
+  final ConfiguracionEstudiante _configPorDefectoEstudiante =
+      ConfiguracionEstudiante(
     modoOscuro: false,
     vistaCuadricula: true,
     mostrarCompletadas: true,
@@ -108,7 +111,8 @@ class ConfiguracionService extends ChangeNotifier {
     ordenPredeterminado: 'fecha-desc',
   );
 
-  final ConfiguracionEncargado _configPorDefectoEncargado = ConfiguracionEncargado(
+  final ConfiguracionEncargado _configPorDefectoEncargado =
+      ConfiguracionEncargado(
     modoOscuro: false,
     tamanoTexto: 'normal',
     vistaDashboard: 'tabla',
@@ -135,7 +139,11 @@ class ConfiguracionService extends ChangeNotifier {
     {'key': 'numeroControl', 'label': 'N° de control', 'esencial': true},
     {'key': 'nombreEstudiante', 'label': 'Nombre', 'esencial': true},
     {'key': 'carreraEstudiante', 'label': 'Carrera', 'esencial': false},
-    {'key': 'extraescolarTaller', 'label': 'Extraescolar/Taller', 'esencial': false},
+    {
+      'key': 'extraescolarTaller',
+      'label': 'Extraescolar/Taller',
+      'esencial': false
+    },
     {'key': 'encargado', 'label': 'Encargado', 'esencial': false},
     {'key': 'nombreActividad', 'label': 'Actividad', 'esencial': true},
     {'key': 'fechaHora', 'label': 'Día y hora', 'esencial': true},
@@ -147,7 +155,7 @@ class ConfiguracionService extends ChangeNotifier {
   Future<void> initialize(AuthService authService) async {
     _authService = authService;
     userRole = _authService.getCurrentUserRole() ?? '';
-    
+
     await cargarConfiguracion();
     aplicarConfiguracionVisual();
   }
@@ -161,13 +169,14 @@ class ConfiguracionService extends ChangeNotifier {
 
       if (configString != null) {
         final configJson = json.decode(configString);
-        
+
         if (userRole == 'Estudiante') {
-          configuracionEstudiante = ConfiguracionEstudiante.fromJson(configJson);
+          configuracionEstudiante =
+              ConfiguracionEstudiante.fromJson(configJson);
         } else if (userRole == 'Encargado') {
           configuracionEncargado = ConfiguracionEncargado.fromJson(configJson);
         }
-        
+
         print('Configuración cargada para $userRole');
       } else {
         _establecerConfiguracionPorDefecto();
@@ -176,16 +185,18 @@ class ConfiguracionService extends ChangeNotifier {
       print('Error al cargar configuración: $e');
       _establecerConfiguracionPorDefecto();
     }
-    
+
     notifyListeners();
   }
 
   // Establecer configuración por defecto
   void _establecerConfiguracionPorDefecto() {
     if (userRole == 'Estudiante') {
-      configuracionEstudiante = ConfiguracionEstudiante.fromJson(_configPorDefectoEstudiante.toJson());
+      configuracionEstudiante = ConfiguracionEstudiante.fromJson(
+          _configPorDefectoEstudiante.toJson());
     } else if (userRole == 'Encargado') {
-      configuracionEncargado = ConfiguracionEncargado.fromJson(_configPorDefectoEncargado.toJson());
+      configuracionEncargado =
+          ConfiguracionEncargado.fromJson(_configPorDefectoEncargado.toJson());
     }
     print('Configuración por defecto establecida para $userRole');
   }
@@ -195,7 +206,7 @@ class ConfiguracionService extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       final configKey = 'config_${userRole.toLowerCase()}';
-      
+
       String configJson;
       if (userRole == 'Estudiante') {
         configJson = json.encode(configuracionEstudiante.toJson());
@@ -204,10 +215,10 @@ class ConfiguracionService extends ChangeNotifier {
       } else {
         return;
       }
-      
+
       await prefs.setString(configKey, configJson);
       print('Configuración guardada para $userRole');
-      
+
       // Emitir evento para otros widgets que escuchen
       notifyListeners();
     } catch (e) {
@@ -220,7 +231,7 @@ class ConfiguracionService extends ChangeNotifier {
     try {
       await guardarConfiguracion();
       aplicarConfiguracionVisual();
-      
+
       print('Configuración aplicada exitosamente');
       return true;
     } catch (e) {
@@ -233,7 +244,7 @@ class ConfiguracionService extends ChangeNotifier {
   void aplicarConfiguracionVisual() {
     bool modoOscuro = false;
     String tamanoTexto = 'normal';
-    
+
     if (userRole == 'Estudiante') {
       modoOscuro = configuracionEstudiante.modoOscuro;
       tamanoTexto = configuracionEstudiante.tamanoTexto;
@@ -241,9 +252,10 @@ class ConfiguracionService extends ChangeNotifier {
       modoOscuro = configuracionEncargado.modoOscuro;
       tamanoTexto = configuracionEncargado.tamanoTexto;
     }
-    
-    print('Aplicando configuración visual: modoOscuro=$modoOscuro, tamanoTexto=$tamanoTexto');
-    
+
+    print(
+        'Aplicando configuración visual: modoOscuro=$modoOscuro, tamanoTexto=$tamanoTexto');
+
     notifyListeners();
   }
 
@@ -252,21 +264,21 @@ class ConfiguracionService extends ChangeNotifier {
     try {
       _establecerConfiguracionPorDefecto();
       await aplicarConfiguracion();
-      
+
       print('Configuración restablecida por defecto');
     } catch (e) {
       print('Error al resetear configuración: $e');
     }
   }
 
-  // MÉTODOS ESTÁTICOS PARA ACCESO GLOBAL 
-  
+  // MÉTODOS ESTÁTICOS PARA ACCESO GLOBAL
+
   static Future<Map<String, dynamic>?> obtenerConfiguracion(String rol) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final configKey = 'config_${rol.toLowerCase()}';
       final configString = prefs.getString(configKey);
-      
+
       if (configString != null) {
         return json.decode(configString);
       }
@@ -280,13 +292,14 @@ class ConfiguracionService extends ChangeNotifier {
   static Future<List<String>> obtenerColumnasVisibles() async {
     final config = await obtenerConfiguracion('Encargado');
     if (config != null && config['columnasVisibles'] != null) {
-      final columnasVisibles = Map<String, bool>.from(config['columnasVisibles']);
+      final columnasVisibles =
+          Map<String, bool>.from(config['columnasVisibles']);
       return columnasVisibles.entries
           .where((entry) => entry.value == true)
           .map((entry) => entry.key)
           .toList();
     }
-    
+
     // Valores por defecto
     return [
       'numeroControl',
@@ -511,7 +524,7 @@ class ConfiguracionService extends ChangeNotifier {
       } else if (userRole == 'Encargado') {
         configuracionEncargado = ConfiguracionEncargado.fromJson(config);
       }
-      
+
       await aplicarConfiguracion();
       return true;
     } catch (e) {

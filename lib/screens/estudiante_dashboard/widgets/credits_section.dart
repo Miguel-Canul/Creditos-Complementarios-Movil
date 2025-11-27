@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/screens/historial_actividades_screen.dart';
 import '../../../utils/constants.dart';
 import '../../../services/api_service.dart';
 
@@ -148,6 +149,7 @@ class _CreditsSectionState extends State<CreditsSection> {
   }
 
   // Construye el botón "Ver historial de actividades"
+// Construye el botón "Ver historial de actividades"
   Widget _buildViewHistoryButton() {
     return TextButton(
       style: TextButton.styleFrom(
@@ -157,7 +159,13 @@ class _CreditsSectionState extends State<CreditsSection> {
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       ),
       onPressed: () {
-        // Acción para "Ver historial"
+        // Navegar a la pantalla HistorialActividadesScreen
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HistorialActividadesScreen(),
+          ),
+        );
       },
       child: const Text(
         'Ver historial de actividades',
