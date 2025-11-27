@@ -35,7 +35,6 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
         CurvedAnimation(parent: _animationController, curve: Curves.easeOut));
     _obtenerNumeroControl();
-    _cargarMisAsistencias();
   }
 
   @override
@@ -47,23 +46,6 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen>
   void _obtenerNumeroControl() {
     context.read<AuthService>();
     setState(() {});
-  }
-
-  Future<void> _cargarMisAsistencias() async {
-    if (_numeroControl == null) return;
-
-    setState(() => _isLoading = true);
-
-    final apiService = context.read<ApiService>();
-    final asistencias =
-        await apiService.getAsistenciasPorEstudiante(_numeroControl!);
-
-    setState(() {
-      _misAsistencias = asistencias;
-      _isLoading = false;
-    });
-
-    _animationController.forward();
   }
 
   void _mostrarDialogoCerrarSesion() {
