@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'widgets/welcome_message.dart';
 import '../widgets/custom_sliver_app_bar.dart';
 import 'widgets/credits_section.dart';
 import 'widgets/available_activities_section.dart';
@@ -19,6 +20,7 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen> {
       body: const CustomScrollView(
         slivers: [
           CustomSliverAppBar(),
+          WelcomeMessage(),
           CreditsSection(),
           AvailableActivitiesSection(),
         ],

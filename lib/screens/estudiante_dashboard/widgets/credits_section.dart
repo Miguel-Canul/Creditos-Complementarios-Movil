@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:mobile/screens/historial_actividades_screen.dart';
+import 'package:mobile/screens/widgets/progress_bar.dart'; // Importar nuevo widget
 import '../../../utils/constants.dart';
 import '../../../services/api_service.dart';
+import '../../../services/auth_service.dart';
 
 class CreditsSection extends StatefulWidget {
   const CreditsSection({super.key});
@@ -11,29 +14,36 @@ class CreditsSection extends StatefulWidget {
 }
 
 class _CreditsSectionState extends State<CreditsSection> {
-  static const String alumnoID = '290939ce-2031-7051-846b-9bd220fa68af';
+  String? _idEstudiante;
   final ApiService _servicioApi = ApiService();
 
   // Variables de estado
   double _creditosObtenidos = 0.0;
   String? _urlConstancia;
 
-  double get _progressValue =>
-      _creditosObtenidos / Constants.creditosRequeridos;
-
   @override
   void initState() {
     super.initState();
-    _cargarDatos(); // Inicia la carga de datos al inicializar el Widget
+
+    final servicioAutenticacion = context.read<AuthService>();
+    _idEstudiante = servicioAutenticacion.userSub;
+
+    if (_idEstudiante != null) {
+      _cargarDatos();
+    } else {
+      print('Error: ID de estudiante no disponible en la sesión activa.');
+    }
   }
 
   void _cargarDatos() async {
+    if (_idEstudiante == null) return;
+
     bool cumpleRequisitos = false;
 
     // Paso 1: Obtener créditos
     try {
       final double creditos =
-          await _servicioApi.obtenerCreditosComplementarios(alumnoID);
+          await _servicioApi.obtenerCreditosComplementarios(_idEstudiante!);
 
       // La condición lógica que determina la activación del botón
       if (creditos >= Constants.creditosRequeridos) {
@@ -44,12 +54,12 @@ class _CreditsSectionState extends State<CreditsSection> {
       String? urlConstancia;
       if (cumpleRequisitos) {
         urlConstancia =
-            await _servicioApi.obtenerUrlConstanciaLiberacion(alumnoID);
+            await _servicioApi.obtenerUrlConstanciaLiberacion(_idEstudiante!);
       }
 
       setState(() {
         _creditosObtenidos = creditos;
-        _urlConstancia = urlConstancia; // Puede ser String o null
+        _urlConstancia = urlConstancia;
       });
     } catch (e) {
       print('Error al cargar datos en UI: $e');
@@ -62,7 +72,7 @@ class _CreditsSectionState extends State<CreditsSection> {
 
   @override
   Widget build(BuildContext context) {
-    // El método build ahora es el ensamblador principal.
+    // Se eliminan _progressValue, _buildHeaderProgress y _buildProgressBar.
     return SliverToBoxAdapter(
       child: Container(
         margin: const EdgeInsets.all(16),
@@ -74,8 +84,12 @@ class _CreditsSectionState extends State<CreditsSection> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeaderProgress(),
-            _buildProgressBar(),
+            // Uso del nuevo widget ProgressBar
+            ProgressBar(
+              titulo: 'Créditos obtenidos',
+              cantidadActual: _creditosObtenidos,
+              cantidadMaxima: Constants.creditosRequeridos,
+            ),
             _buildActionButtons(),
           ],
         ),
@@ -83,54 +97,8 @@ class _CreditsSectionState extends State<CreditsSection> {
     );
   }
 
-  // 1. Método: Construye el encabezado (Título + Contador)
-  Widget _buildHeaderProgress() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        _buildCreditsTitle(),
-        _buildProgressCounter(),
-      ],
-    );
-  }
-
-// Construye el título "Créditos obtenidos"
-  Widget _buildCreditsTitle() {
-    return const Text(
-      'Créditos obtenidos',
-      style: TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.bold,
-        color: Colors.black87,
-      ),
-    );
-  }
-
-// Construye el contador de progreso (ej: 2/5)
-  Widget _buildProgressCounter() {
-    return Text(
-      '$_creditosObtenidos/${Constants.creditosRequeridos.toInt()}',
-      style: const TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.bold,
-        color: Color(Constants.primaryColor),
-      ),
-    );
-  }
-
-  // 2. Método: Construye la barra de progreso
-  Widget _buildProgressBar() {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(5),
-      child: LinearProgressIndicator(
-        value: _progressValue.toDouble(),
-        backgroundColor: Colors.grey[300],
-        valueColor: const AlwaysStoppedAnimation<Color>(
-            Color(Constants.primaryColor)), // Color principal
-        minHeight: 10,
-      ),
-    );
-  }
+  // Los métodos _buildHeaderProgress, _buildCreditsTitle y _buildProgressCounter
+  // ya no son necesarios aquí y han sido eliminados.
 
   // 3. Método: Construye el grupo de botones de acción
   Widget _buildActionButtons() {
@@ -149,7 +117,6 @@ class _CreditsSectionState extends State<CreditsSection> {
   }
 
   // Construye el botón "Ver historial de actividades"
-// Construye el botón "Ver historial de actividades"
   Widget _buildViewHistoryButton() {
     return TextButton(
       style: TextButton.styleFrom(
@@ -179,10 +146,8 @@ class _CreditsSectionState extends State<CreditsSection> {
 
 // Construye el botón "Descargar constancia de liberación"
   Widget _buildDownloadCertificateButton() {
-    // Condición de Activación:
-    // 1. Debe cumplir los créditos.
-    // 2. La URL debe existir (_urlConstancia no es null) (Requerido por la API).
-    final bool botonActivo = _urlConstancia != null &&
+    // Condición de Activación: Solo debe cumplir los créditos.
+    final bool botonActivo = 
         _creditosObtenidos >= Constants.creditosRequeridos;
 
     // Si el botón está activo, se usa la función de descarga (placeholder).
@@ -191,6 +156,8 @@ class _CreditsSectionState extends State<CreditsSection> {
             if (_urlConstancia != null) {
               print('Intentando descargar de: $_urlConstancia');
               // Aquí irá la lógica de lanzamiento o descarga de URL
+            } else {
+              print('Créditos suficientes, pero URL de constancia nula.');
             }
           }
         : null; // null desactiva el TextButton
