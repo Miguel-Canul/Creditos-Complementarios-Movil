@@ -71,7 +71,7 @@ class AuthService extends ChangeNotifier {
 
         final session = await _cognitoUser.getSession();
         if (session != null && session.isValid()) {
-          _userToken = session.accessToken?.jwtToken;
+          _userToken = session.accessToken.jwtToken;
           await _obtenerInformacionUsuario();
 
           _isAuthenticated = true;
@@ -101,7 +101,7 @@ class AuthService extends ChangeNotifier {
       final session = await _cognitoUser.authenticateUser(authDetails);
 
       if (session != null && session.isValid()) {
-        _userToken = session.accessToken?.jwtToken;
+        _userToken = session.accessToken.jwtToken;
         await _obtenerInformacionUsuario();
 
         if (rememberMe) {
