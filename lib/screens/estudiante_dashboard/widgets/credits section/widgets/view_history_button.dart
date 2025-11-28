@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/screens/historial_actividades_screen.dart';
-import '../../../../utils/constants.dart';
+import '../../../../../../utils/constants.dart';
 
 class ViewHistoryButton extends StatelessWidget {
   const ViewHistoryButton({super.key});
@@ -20,7 +20,7 @@ class ViewHistoryButton extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => HistorialActividadesScreen(),
+            builder: (context) => const HistorialActividadesScreen(),
           ),
         );
       },
