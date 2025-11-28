@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:mobile/models/historial_response.dart';
 import '../utils/constants.dart';
 import '../models/Actividad_inscripcion.dart';
 
@@ -125,6 +126,26 @@ class ApiService {
     } catch (e) {
       print('Error al obtener actividades disponibles: $e');
       // Relanza la excepción para que el consumidor la maneje.
+      rethrow;
+    }
+  }
+
+  Future<HistorialResponse> obtenerHistorialActividades(String alumnoId) async {
+    final String ruta = '${baseURL}movil/historialact?alumno_id=$alumnoId';
+    final Uri url = Uri.parse(ruta);
+
+    try {
+      final http.Response respuesta = await http.get(
+        url,
+        headers: cabeceras,
+      );
+
+      _handleError(respuesta);
+
+      final respuestaJson = json.decode(respuesta.body);
+      return HistorialResponse.fromJson(respuestaJson);
+    } catch (e) {
+      print('Error al obtener historial de actividades: $e');
       rethrow;
     }
   }
