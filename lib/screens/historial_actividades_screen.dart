@@ -62,6 +62,8 @@ class _HistorialActividadesScreenState
   }
 
   Widget _buildCreditosSection() {
+    final viewModel = context.watch<ActividadViewModel>();
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -78,20 +80,59 @@ class _HistorialActividadesScreenState
             ),
           ),
           const SizedBox(height: 12),
-          _buildCategoriaItem('Extraescolar', 2),
-          const SizedBox(height: 8),
-          _buildCategoriaItem('Taller', 0),
+
+          // Mostrar créditos por categoría desde la API
+          if (viewModel.creditosPorCategoria.isNotEmpty)
+            ...viewModel.creditosPorCategoria.entries.map((entry) {
+              return Column(
+                children: [
+                  _buildCategoriaItem(
+                    _formatearCategoria(entry.key),
+                    (entry.value as num).toDouble(),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+              );
+            }).toList()
+          else
+            const Text(
+              'No hay créditos registrados por categoría',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey,
+              ),
+            ),
+
           const SizedBox(height: 16),
           Container(
             height: 1,
             color: Colors.grey[300],
+          ),
+          const SizedBox(height: 8),
+          // Total de créditos
+          Text(
+            'Total de créditos: ${viewModel.totalCreditos}',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.green,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildCategoriaItem(String categoria, int creditos) {
+  String _formatearCategoria(String categoria) {
+    // Remover el prefijo "CATEGORIA#" si existe
+    if (categoria.contains('#')) {
+      return categoria.split('#').last;
+    }
+    return categoria;
+  }
+
+  Widget _buildCategoriaItem(String categoria, double creditos) {
+    // Cambia int por double
     return Row(
       children: [
         Container(
@@ -104,7 +145,7 @@ class _HistorialActividadesScreenState
         ),
         const SizedBox(width: 12),
         Text(
-          '$categoria $creditos',
+          '$categoria $creditos', // Esto mostrará el double correctamente
           style: const TextStyle(
             fontSize: 16,
             color: Colors.black87,
@@ -198,8 +239,9 @@ class _HistorialActividadesScreenState
   }
 
   Widget _buildActividadCard(ActividadHistorial actividad) {
-    final bool isCompletado = actividad.estado.toLowerCase() == 'completado';
-    final bool isEnCurso = actividad.estado.toLowerCase() == 'en curso';
+    final bool isCompletado =
+        actividad.estadoTexto.toLowerCase() == 'completado';
+    final bool isEnCurso = actividad.estadoTexto.toLowerCase() == 'en curso';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -226,8 +268,10 @@ class _HistorialActividadesScreenState
             child: Container(
               height: 140,
               width: double.infinity,
-              child: Image.asset(
-                actividad.foto,
+              child: Image.network(
+                actividad.fotoURL.isNotEmpty
+                    ? actividad.fotoURL
+                    : 'https://via.placeholder.com/400x200?text=Sin+Imagen',
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
@@ -260,7 +304,7 @@ class _HistorialActividadesScreenState
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: _getEstadoColor(actividad.estado).withOpacity(0.1),
+              color: _getEstadoColor(actividad.estadoTexto).withOpacity(0.1),
               border: Border(
                 bottom: BorderSide(
                   color: Colors.grey[200]!,
@@ -294,7 +338,7 @@ class _HistorialActividadesScreenState
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          actividad.categoria,
+                          _formatearCategoria(actividad.categoria),
                           style: const TextStyle(
                             fontSize: 12,
                             color: Color(0xFF2E7D32),
@@ -328,7 +372,7 @@ class _HistorialActividadesScreenState
             ),
           ),
 
-          // Contenido de la actividad
+          // Contenido de la actividad - SOLO PERIODO, ESTADO Y DESEMPEÑO
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -341,7 +385,7 @@ class _HistorialActividadesScreenState
                     Expanded(
                       child: _buildDetailItem(
                         'Período:',
-                        actividad.periodo,
+                        _formatearPeriodo(actividad.periodo),
                         Icons.calendar_today,
                         Colors.blue,
                       ),
@@ -350,9 +394,9 @@ class _HistorialActividadesScreenState
                     Expanded(
                       child: _buildDetailItem(
                         'Estado:',
-                        actividad.estado,
+                        actividad.estadoTexto,
                         Icons.info_outline,
-                        _getEstadoColor(actividad.estado),
+                        _getEstadoColor(actividad.estadoTexto),
                       ),
                     ),
                   ],
@@ -360,62 +404,13 @@ class _HistorialActividadesScreenState
 
                 const SizedBox(height: 16),
 
-                // Segunda fila: Folio y Desempeño
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: _buildDetailItem(
-                        'Folio:',
-                        actividad.folio?.isNotEmpty == true
-                            ? actividad.folio!
-                            : 'No asignado',
-                        Icons.assignment,
-                        Colors.orange,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: _buildDetailItem(
-                        isEnCurso ? 'Desempeño parcial:' : 'Desempeño:',
-                        actividad.desempenio?.isNotEmpty == true
-                            ? actividad.desempenio!
-                            : 'No evaluado',
-                        Icons.assessment,
-                        _getDesempenioColor(actividad.desempenio),
-                      ),
-                    ),
-                  ],
+                // Segunda fila: Solo Desempeño
+                _buildDetailItem(
+                  isEnCurso ? 'Desempeño parcial:' : 'Desempeño:',
+                  actividad.desempenioTexto,
+                  Icons.assessment,
+                  _getDesempenioColor(actividad.desempenioTexto),
                 ),
-
-                // Fechas si están disponibles
-                if (actividad.fechaInicio != null && actividad.fechaFin != null)
-                  Column(
-                    children: [
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildDetailItem(
-                              'Fecha inicio:',
-                              _formatDate(actividad.fechaInicio!),
-                              Icons.play_arrow,
-                              Colors.purple,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: _buildDetailItem(
-                              'Fecha fin:',
-                              _formatDate(actividad.fechaFin!),
-                              Icons.stop,
-                              Colors.red,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
               ],
             ),
           ),
@@ -463,10 +458,6 @@ class _HistorialActividadesScreenState
     );
   }
 
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
-  }
-
   Color _getEstadoColor(String estado) {
     switch (estado.toLowerCase()) {
       case 'completado':
@@ -509,5 +500,13 @@ class _HistorialActividadesScreenState
 
     // Aquí iría la lógica real de descarga
     print('Iniciando descarga para: ${actividad.nombre}');
+  }
+
+  String _formatearPeriodo(String periodo) {
+    // Remover el prefijo "PERIODO#" si existe
+    if (periodo.contains('#')) {
+      return periodo.split('#').last;
+    }
+    return periodo;
   }
 }

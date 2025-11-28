@@ -5,8 +5,8 @@ import 'screens/estudiante_dashboard/estudiante_dashboard_screen.dart';
 import 'services/api_service.dart';
 import 'services/auth_service.dart';
 import 'services/configuracion_service.dart';
-import 'repositories/actividad_repository.dart'; // Añadir esta importación
-import 'view_models/actividad_viewmodel.dart'; // Añadir esta importación
+import 'repositories/actividad_repository.dart';
+import 'view_models/actividad_viewmodel.dart';
 import 'utils/constants.dart';
 
 void main() {
@@ -36,9 +36,18 @@ class MyApp extends StatelessWidget {
         Provider<ApiService>(
           create: (_) => ApiService(),
         ),
-        // Añadir el provider del ViewModel de actividades
+        // Provider para ActividadRepository
+        Provider<ActividadRepository>(
+          create: (context) => ActividadRepository(
+            apiService: context.read<ApiService>(),
+            authService: context.read<AuthService>(),
+          ),
+        ),
+        // Provider para ActividadViewModel - CORREGIDO
         ChangeNotifierProvider<ActividadViewModel>(
-          create: (_) => ActividadViewModel(ActividadRepository()),
+          create: (context) => ActividadViewModel(
+            context.read<ActividadRepository>(),
+          ),
         ),
       ],
       child: Consumer2<AuthService, ConfiguracionService>(
@@ -70,7 +79,7 @@ class MyApp extends StatelessWidget {
                 : ThemeMode.light,
 
             // Navegación inicial basada en autenticación
-            home: const LoginScreen(),
+            home: const AuthWrapper(), // Cambiado a AuthWrapper
           );
         },
       ),
@@ -105,16 +114,16 @@ class MyApp extends StatelessWidget {
       primarySwatch: const MaterialColor(
         Constants.primaryColor,
         <int, Color>{
-          50: const Color(0xFFE3F2FD),
-          100: const Color(0xFFBBDEFB),
-          200: const Color(0xFF90CAF9),
-          300: const Color(0xFF64B5F6),
-          400: const Color(0xFF42A5F5),
+          50: Color(0xFFE3F2FD),
+          100: Color(0xFFBBDEFB),
+          200: Color(0xFF90CAF9),
+          300: Color(0xFF64B5F6),
+          400: Color(0xFF42A5F5),
           500: primaryColor,
-          600: const Color(0xFF1E88E5),
-          700: const Color(0xFF1976D2),
-          800: const Color(0xFF1565C0),
-          900: const Color(0xFF0D47A1),
+          600: Color(0xFF1E88E5),
+          700: Color(0xFF1976D2),
+          800: Color(0xFF1565C0),
+          900: Color(0xFF0D47A1),
         },
       ),
 
@@ -258,8 +267,9 @@ class _AuthWrapperState extends State<AuthWrapper> {
 
   Future<void> _initializeServices() async {
     try {
-      final authService = context.read<AuthService>();
-      final configService = context.read<ConfiguracionService>();
+      final authService = Provider.of<AuthService>(context, listen: false);
+      final configService =
+          Provider.of<ConfiguracionService>(context, listen: false);
 
       // Inicializar servicios
       await authService.initialize();
