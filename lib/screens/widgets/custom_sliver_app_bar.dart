@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../utils/constants.dart';
+import '../../services/auth_service.dart';
+import '../../screens/login_screen.dart';
 
 class CustomSliverAppBar extends StatelessWidget {
-  final String _imageUrlPlaceholder =
-      'https://yt3.googleusercontent.com/K7DvodCSwUravld3sfWgVCF_uhWgmgYh5MLPDvv7htu5xxZbIJr_qXVkZT68mxgZTiAdXpM1GQk=s900-c-k-c0x00ffffff-no-rj';
-
   const CustomSliverAppBar({super.key});
 
   @override
@@ -19,12 +19,11 @@ class CustomSliverAppBar extends StatelessWidget {
       centerTitle: false,
       titleSpacing: 16.0,
       title: _buildTitle(),
-      actions: _buildActions(),
+      actions: _buildActions(context),
     );
   }
 
 // 1. Método para construir el TÍTULO
-// .
   Widget _buildTitle() {
     return const Text(
       'Créditos complementarios',
@@ -32,20 +31,35 @@ class CustomSliverAppBar extends StatelessWidget {
     );
   }
 
-// 2. Método para construir el AVATAR (Acciones)
-  List<Widget> _buildActions() {
+// 2. Método para construir el BOTÓN DE CERRAR SESIÓN
+  List<Widget> _buildActions(BuildContext context) {
     return [
-      Padding(
-        padding: const EdgeInsets.only(right: 16.0),
-        child: ClipOval(
-          child: Image.network(
-            _imageUrlPlaceholder,
-            width: 50,
-            height: 50,
-            fit: BoxFit.cover,
-          ),
+      IconButton(
+        icon: const Icon(
+          Icons.logout,
+          color: Colors.white,
+          size: 26,
         ),
+        // Llama al nuevo método para manejar la acción
+        onPressed: () => _handleLogout(context),
       ),
+      const SizedBox(width: 8),
     ];
+  }
+
+  // Método: Manejar la lógica de cierre de sesión y navegación
+  Future<void> _handleLogout(BuildContext context) async {
+    final servicioAutenticacion =
+        Provider.of<AuthService>(context, listen: false);
+
+    // Navegar al LoginScreen y eliminar todas las rutas anteriores
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => LoginScreen()),
+      (Route<dynamic> route) => false,
+    );
+
+    // Llamar al logout (cierra la sesión en Cognito y limpia datos)
+    await servicioAutenticacion.logout();
   }
 }

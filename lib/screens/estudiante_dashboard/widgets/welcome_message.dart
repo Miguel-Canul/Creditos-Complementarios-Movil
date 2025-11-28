@@ -10,13 +10,12 @@ class WelcomeMessage extends StatelessWidget {
     // Obtener la instancia de AuthService y escuchar cambios para el rebuild
     final servicioAutenticacion = context.watch<AuthService>();
     
-    final nombre = servicioAutenticacion.userGivenName ?? 'Usuario';
-    final apellido = servicioAutenticacion.userFamilyName ?? '';
+    final nombre = servicioAutenticacion.userGivenName ?? 'Estudiante';
 
     // El nombre y apellido deberían venir en los claims de Cognito. 
     // Asumo que tu AuthService tiene getters llamados 'userName' y 'userFamilyName'.
 
-    final mensaje = 'Bienvenido, $nombre $apellido';
+    final mensaje = '¡Bienvenido, $nombre!';
 
     return SliverToBoxAdapter(
       child: Padding(
