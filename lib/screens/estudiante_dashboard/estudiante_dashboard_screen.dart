@@ -19,7 +19,7 @@ class _EstudianteDashboardScreenState extends State<EstudianteDashboardScreen> {
       backgroundColor: Colors.grey[100],
       body: const CustomScrollView(
         slivers: [
-          CustomSliverAppBar(),
+          CustomSliverAppBar(titulo: "Créditos complementarios"),
           WelcomeMessage(),
           CreditsSection(),
           AvailableActivitiesSection(),

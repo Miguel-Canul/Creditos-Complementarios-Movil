@@ -5,7 +5,15 @@ import '../../services/auth_service.dart';
 import '../../screens/login_screen.dart';
 
 class CustomSliverAppBar extends StatelessWidget {
-  const CustomSliverAppBar({super.key});
+  // Parámetros agregados:
+  final String titulo;
+  final bool mostrarBotonRetroceso;
+
+  const CustomSliverAppBar({
+    super.key,
+    required this.titulo, // 1. Título requerido
+    this.mostrarBotonRetroceso = false, // 2. Botón opcional, por defecto 'false'
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +23,10 @@ class CustomSliverAppBar extends StatelessWidget {
       pinned: true,
       backgroundColor: const Color(Constants.primaryColor),
       elevation: 4,
-      automaticallyImplyLeading: false,
+      // CONTROL DEL BOTÓN DE RETROCESO:
+      automaticallyImplyLeading: false, // Desactivar el control automático
+      leading: mostrarBotonRetroceso ? _buildBackButton(context) : null, // Mostrar si se requiere
+      
       centerTitle: false,
       titleSpacing: 16.0,
       title: _buildTitle(),
@@ -23,11 +34,23 @@ class CustomSliverAppBar extends StatelessWidget {
     );
   }
 
+// 0. Nuevo Método: Construye el botón de retroceso
+  Widget? _buildBackButton(BuildContext context) {
+    return IconButton(
+      icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+      onPressed: () {
+        // La acción estándar es navegar hacia atrás
+        Navigator.pop(context); 
+      },
+    );
+  }
+
 // 1. Método para construir el TÍTULO
   Widget _buildTitle() {
-    return const Text(
-      'Créditos complementarios',
-      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+    // Usar el parámetro 'titulo'
+    return Text(
+      titulo,
+      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
     );
   }
 
@@ -40,7 +63,6 @@ class CustomSliverAppBar extends StatelessWidget {
           color: Colors.white,
           size: 26,
         ),
-        // Llama al nuevo método para manejar la acción
         onPressed: () => _handleLogout(context),
       ),
       const SizedBox(width: 8),
