@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../utils/constants.dart';
+import '../../services/auth_service.dart';
+import '../../screens/login_screen.dart';
 
 class CustomSliverAppBar extends StatelessWidget {
-  final String _imageUrlPlaceholder =
-      'https://yt3.googleusercontent.com/K7DvodCSwUravld3sfWgVCF_uhWgmgYh5MLPDvv7htu5xxZbIJr_qXVkZT68mxgZTiAdXpM1GQk=s900-c-k-c0x00ffffff-no-rj';
+  // Parámetros agregados:
+  final String titulo;
+  final bool mostrarBotonRetroceso;
 
-  const CustomSliverAppBar({super.key});
+  const CustomSliverAppBar({
+    super.key,
+    required this.titulo, // 1. Título requerido
+    this.mostrarBotonRetroceso = false, // 2. Botón opcional, por defecto 'false'
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -15,37 +23,65 @@ class CustomSliverAppBar extends StatelessWidget {
       pinned: true,
       backgroundColor: const Color(Constants.primaryColor),
       elevation: 4,
-      automaticallyImplyLeading: false,
+      // CONTROL DEL BOTÓN DE RETROCESO:
+      automaticallyImplyLeading: false, // Desactivar el control automático
+      leading: mostrarBotonRetroceso ? _buildBackButton(context) : null, // Mostrar si se requiere
+      
       centerTitle: false,
       titleSpacing: 16.0,
       title: _buildTitle(),
-      actions: _buildActions(),
+      actions: _buildActions(context),
+    );
+  }
+
+// 0. Nuevo Método: Construye el botón de retroceso
+  Widget? _buildBackButton(BuildContext context) {
+    return IconButton(
+      icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+      onPressed: () {
+        // La acción estándar es navegar hacia atrás
+        Navigator.pop(context); 
+      },
     );
   }
 
 // 1. Método para construir el TÍTULO
-// .
   Widget _buildTitle() {
-    return const Text(
-      'Créditos complementarios',
-      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+    // Usar el parámetro 'titulo'
+    return Text(
+      titulo,
+      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
     );
   }
 
-// 2. Método para construir el AVATAR (Acciones)
-  List<Widget> _buildActions() {
+// 2. Método para construir el BOTÓN DE CERRAR SESIÓN
+  List<Widget> _buildActions(BuildContext context) {
     return [
-      Padding(
-        padding: const EdgeInsets.only(right: 16.0),
-        child: ClipOval(
-          child: Image.network(
-            _imageUrlPlaceholder,
-            width: 50,
-            height: 50,
-            fit: BoxFit.cover,
-          ),
+      IconButton(
+        icon: const Icon(
+          Icons.logout,
+          color: Colors.white,
+          size: 26,
         ),
+        onPressed: () => _handleLogout(context),
       ),
+      const SizedBox(width: 8),
     ];
+  }
+
+  // Método: Manejar la lógica de cierre de sesión y navegación
+  Future<void> _handleLogout(BuildContext context) async {
+    final servicioAutenticacion =
+        Provider.of<AuthService>(context, listen: false);
+
+    // Navegar al LoginScreen y eliminar todas las rutas anteriores
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => LoginScreen()),
+      (Route<dynamic> route) => false,
+    );
+
+    // Llamar al logout (cierra la sesión en Cognito y limpia datos)
+    await servicioAutenticacion.logout();
   }
 }
