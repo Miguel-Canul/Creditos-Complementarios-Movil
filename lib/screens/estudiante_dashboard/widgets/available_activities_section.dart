@@ -138,7 +138,7 @@ class _AvailableActivitiesSectionState extends State<AvailableActivitiesSection>
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withAlpha(5),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -221,7 +221,7 @@ Widget _buildCarouselItem(BuildContext context, ActividadInscripcion actividad) 
   Widget _buildActivityAvatar(String imageUrl) {
     return CircleAvatar(
       radius: 35,
-      backgroundColor: const Color(Constants.primaryColor).withOpacity(0.1),
+      backgroundColor: const Color(Constants.primaryColor).withAlpha(10),
       child: ClipOval(
         child: Image.network(
           imageUrl,
@@ -261,9 +261,9 @@ Widget _buildCarouselItem(BuildContext context, ActividadInscripcion actividad) 
   }
 
   Widget _buildErrorMessage() {
-    return Center(
+    return const Center(
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: EdgeInsets.all(24.0),
         child: Text(
           '⚠️ Error al cargar las actividades. Inténtalo de nuevo.',
           textAlign: TextAlign.center,
@@ -274,9 +274,9 @@ Widget _buildCarouselItem(BuildContext context, ActividadInscripcion actividad) 
   }
   
   Widget _buildEmptyState() {
-    return Center(
+    return const Center(
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: EdgeInsets.all(24.0),
         child: Text(
           '🎉 ¡No hay actividades disponibles para inscripción!',
           textAlign: TextAlign.center,

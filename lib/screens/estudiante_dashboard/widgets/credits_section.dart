@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:mobile/screens/historial_actividades_screen.dart';
-import 'package:mobile/screens/widgets/progress_bar.dart'; // Importar nuevo widget
+import 'package:mobile/screens/widgets/progress_bar.dart';
+import 'package:mobile/screens/estudiante_dashboard/widgets/view_history_button.dart'; // Nuevo widget
+import 'package:mobile/screens/estudiante_dashboard/widgets/download_certificate_button.dart'; // Nuevo widget
 import '../../../utils/constants.dart';
 import '../../../services/api_service.dart';
 import '../../../services/auth_service.dart';
@@ -72,7 +73,6 @@ class _CreditsSectionState extends State<CreditsSection> {
 
   @override
   Widget build(BuildContext context) {
-    // Se eliminan _progressValue, _buildHeaderProgress y _buildProgressBar.
     return SliverToBoxAdapter(
       child: Container(
         margin: const EdgeInsets.all(16),
@@ -84,7 +84,7 @@ class _CreditsSectionState extends State<CreditsSection> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Uso del nuevo widget ProgressBar
+            // Uso del widget ProgressBar
             ProgressBar(
               titulo: 'Créditos obtenidos',
               cantidadActual: _creditosObtenidos,
@@ -97,9 +97,6 @@ class _CreditsSectionState extends State<CreditsSection> {
     );
   }
 
-  // Los métodos _buildHeaderProgress, _buildCreditsTitle y _buildProgressCounter
-  // ya no son necesarios aquí y han sido eliminados.
-
   // 3. Método: Construye el grupo de botones de acción
   Widget _buildActionButtons() {
     return Align(
@@ -109,81 +106,15 @@ class _CreditsSectionState extends State<CreditsSection> {
         children: [
           const SizedBox(height: 8),
           const SizedBox(height: 2),
-          _buildViewHistoryButton(),
-          _buildDownloadCertificateButton(),
+          // Uso de los nuevos widgets de botón
+          const ViewHistoryButton(), 
+          DownloadCertificateButton(
+            creditosObtenidos: _creditosObtenidos,
+            urlConstancia: _urlConstancia,
+          ),
         ],
       ),
     );
   }
-
-  // Construye el botón "Ver historial de actividades"
-  Widget _buildViewHistoryButton() {
-    return TextButton(
-      style: TextButton.styleFrom(
-        padding: EdgeInsets.zero,
-        minimumSize: const Size(0, 0),
-        alignment: Alignment.centerRight,
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      ),
-      onPressed: () {
-        // Navegar a la pantalla HistorialActividadesScreen
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => HistorialActividadesScreen(),
-          ),
-        );
-      },
-      child: const Text(
-        'Ver historial de actividades',
-        style: TextStyle(
-          color: Color(Constants.accentColor),
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
-
-// Construye el botón "Descargar constancia de liberación"
-  Widget _buildDownloadCertificateButton() {
-    // Condición de Activación: Solo debe cumplir los créditos.
-    final bool botonActivo = 
-        _creditosObtenidos >= Constants.creditosRequeridos;
-
-    // Si el botón está activo, se usa la función de descarga (placeholder).
-    final VoidCallback? onPressedAction = botonActivo
-        ? () {
-            if (_urlConstancia != null) {
-              print('Intentando descargar de: $_urlConstancia');
-              // Aquí irá la lógica de lanzamiento o descarga de URL
-            } else {
-              print('Créditos suficientes, pero URL de constancia nula.');
-            }
-          }
-        : null; // null desactiva el TextButton
-
-    final Color colorTexto =
-        botonActivo ? const Color(Constants.accentColor) : Colors.grey;
-
-    final Color colorIcono =
-        botonActivo ? const Color(Constants.accentColor) : Colors.grey;
-
-    return TextButton.icon(
-      style: TextButton.styleFrom(
-        padding: EdgeInsets.zero,
-        minimumSize: const Size(0, 0),
-        alignment: Alignment.centerRight,
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      ),
-      onPressed: onPressedAction, // Usa la función o null
-      icon: Icon(Icons.picture_as_pdf, color: colorIcono, size: 18),
-      label: Text(
-        'Descargar constancia de liberación',
-        style: TextStyle(
-          color: colorTexto,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
+  // Se eliminan _buildViewHistoryButton y _buildDownloadCertificateButton
 }
