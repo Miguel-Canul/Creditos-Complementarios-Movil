@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:mobile/models/estudiante.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:amazon_cognito_identity_dart_2/cognito.dart';
-import '../utils/constants.dart';
 
 class AuthService extends ChangeNotifier {
   static final AuthService _instance = AuthService._internal();

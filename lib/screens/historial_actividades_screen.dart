@@ -259,7 +259,7 @@ class _HistorialActividadesScreenState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // IMAGEN DE LA ACTIVIDAD - CAMBIA Image.asset POR Image.network
+          // IMAGEN DE LA ACTIVIDAD
           ClipRRect(
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(12),
@@ -269,7 +269,6 @@ class _HistorialActividadesScreenState
               height: 140,
               width: double.infinity,
               child: Image.network(
-                // CAMBIO IMPORTANTE
                 actividad.fotoURL.isNotEmpty
                     ? actividad.fotoURL
                     : 'https://via.placeholder.com/400x200?text=Sin+Imagen',
@@ -305,8 +304,7 @@ class _HistorialActividadesScreenState
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: _getEstadoColor(actividad.estadoTexto)
-                  .withOpacity(0.1), // USA estadoTexto
+              color: _getEstadoColor(actividad.estadoTexto).withOpacity(0.1),
               border: Border(
                 bottom: BorderSide(
                   color: Colors.grey[200]!,
@@ -340,8 +338,7 @@ class _HistorialActividadesScreenState
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          _formatearCategoria(
-                              actividad.categoria), // FORMATEA LA CATEGORÍA
+                          _formatearCategoria(actividad.categoria),
                           style: const TextStyle(
                             fontSize: 12,
                             color: Color(0xFF2E7D32),
@@ -375,7 +372,7 @@ class _HistorialActividadesScreenState
             ),
           ),
 
-          // Contenido de la actividad
+          // Contenido de la actividad - SOLO PERIODO, ESTADO Y DESEMPEÑO
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -388,8 +385,7 @@ class _HistorialActividadesScreenState
                     Expanded(
                       child: _buildDetailItem(
                         'Período:',
-                        _formatearPeriodo(
-                            actividad.periodo), // FORMATEA EL PERIODO
+                        _formatearPeriodo(actividad.periodo),
                         Icons.calendar_today,
                         Colors.blue,
                       ),
@@ -398,10 +394,9 @@ class _HistorialActividadesScreenState
                     Expanded(
                       child: _buildDetailItem(
                         'Estado:',
-                        actividad.estadoTexto, // USA estadoTexto
+                        actividad.estadoTexto,
                         Icons.info_outline,
-                        _getEstadoColor(
-                            actividad.estadoTexto), // USA estadoTexto
+                        _getEstadoColor(actividad.estadoTexto),
                       ),
                     ),
                   ],
@@ -409,74 +404,12 @@ class _HistorialActividadesScreenState
 
                 const SizedBox(height: 16),
 
-                // Segunda fila: Folio y Desempeño
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: _buildDetailItem(
-                        'Folio:',
-                        actividad.folio?.isNotEmpty == true
-                            ? actividad.folio!
-                            : 'No asignado',
-                        Icons.assignment,
-                        Colors.orange,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: _buildDetailItem(
-                        isEnCurso ? 'Desempeño parcial:' : 'Desempeño:',
-                        actividad.desempenioTexto, // USA desempenioTexto
-                        Icons.assessment,
-                        _getDesempenioColor(
-                            actividad.desempenioTexto), // USA desempenioTexto
-                      ),
-                    ),
-                  ],
-                ),
-
-                // Fechas si están disponibles - USA LOS GETTERS DE DATETIME
-                if (actividad.fechaInicioDate != null ||
-                    actividad.fechaFinDate != null)
-                  Column(
-                    children: [
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildDetailItem(
-                              'Fecha inicio:',
-                              actividad.fechaInicioDate != null
-                                  ? _formatDate(actividad.fechaInicioDate!)
-                                  : 'No definida',
-                              Icons.play_arrow,
-                              Colors.purple,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: _buildDetailItem(
-                              'Fecha fin:',
-                              actividad.fechaFinDate != null
-                                  ? _formatDate(actividad.fechaFinDate!)
-                                  : 'No definida',
-                              Icons.stop,
-                              Colors.red,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-
-                // Créditos de la actividad
-                const SizedBox(height: 16),
+                // Segunda fila: Solo Desempeño
                 _buildDetailItem(
-                  'Créditos:',
-                  '${actividad.cantidadCreditos}',
-                  Icons.school,
-                  Colors.green,
+                  isEnCurso ? 'Desempeño parcial:' : 'Desempeño:',
+                  actividad.desempenioTexto,
+                  Icons.assessment,
+                  _getDesempenioColor(actividad.desempenioTexto),
                 ),
               ],
             ),
@@ -523,10 +456,6 @@ class _HistorialActividadesScreenState
         ),
       ],
     );
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
   }
 
   Color _getEstadoColor(String estado) {

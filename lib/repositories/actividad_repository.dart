@@ -1,5 +1,3 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import '../models/actividad_historial.dart';
 import '../models/historial_response.dart';
 import '../services/api_service.dart';

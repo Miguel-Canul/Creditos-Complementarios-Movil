@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../models/actividad_historial.dart';
-import '../models/historial_response.dart';
 import '../repositories/actividad_repository.dart';
 
 class ActividadViewModel with ChangeNotifier {
