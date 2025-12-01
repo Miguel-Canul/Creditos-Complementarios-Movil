@@ -23,6 +23,10 @@ class ActividadHistorial {
   final int? estadoInscripcion;
   final int? valorNumerico;
 
+  // Nuevos campos del JSON de respuesta
+  final String? categoriaNombre;
+  final String? periodoNombre;
+
   ActividadHistorial({
     required this.categoria,
     required this.nombre,
@@ -46,6 +50,9 @@ class ActividadHistorial {
     this.observaciones,
     this.estadoInscripcion,
     this.valorNumerico,
+    // Campos del JSON de respuesta
+    this.categoriaNombre,
+    this.periodoNombre,
   });
 
   factory ActividadHistorial.fromJson(Map<String, dynamic> json) {
@@ -72,6 +79,45 @@ class ActividadHistorial {
       observaciones: json['Observaciones'] ?? '',
       estadoInscripcion: json['EstadoInscripcion'] ?? 0,
       valorNumerico: json['ValorNumerico'] ?? 0,
+      // Campos del JSON de respuesta
+      categoriaNombre: json['CategoriaNombre'] ?? '',
+      periodoNombre: json['PeriodoNombre'] ?? '',
+    );
+  }
+
+  // Método para crear desde el JSON de historial (con inscripción combinada)
+  factory ActividadHistorial.fromHistorialJson(
+      Map<String, dynamic> historialJson) {
+    final actividadJson = historialJson['actividad'] ?? {};
+    final inscripcionJson = historialJson['inscripcion'] ?? {};
+
+    return ActividadHistorial(
+      categoria: actividadJson['Categoria'] ?? '',
+      nombre: actividadJson['Nombre'] ?? '',
+      descripcion: actividadJson['Descripcion'] ?? '',
+      ubicacion: actividadJson['Ubicacion'] ?? '',
+      cantidadCreditos: (actividadJson['CantidadCreditos'] ?? 0).toDouble(),
+      periodo: actividadJson['Periodo'] ?? '',
+      estado: actividadJson['Estado'] ?? 0,
+      encargado: actividadJson['Encargado'] ?? '',
+      fechaFin: actividadJson['FechaFin'] ?? '',
+      departamento: actividadJson['Departamento'] ?? '',
+      cupoActual: actividadJson['CupoActual'] ?? 0,
+      fechaInicio: actividadJson['FechaInicio'] ?? '',
+      cupoMaximo: actividadJson['CupoMaximo'] ?? 0,
+      pk: actividadJson['PK'] ?? '',
+      fotoURL: actividadJson['FotoURL'] ?? '',
+      sk: actividadJson['SK'] ?? '',
+      // Campos de la inscripción
+      desempeno: inscripcionJson['Desempeno'] ?? 0,
+      desempenoParcial: inscripcionJson['DesempenoParcial'] ?? 0,
+      observaciones: inscripcionJson['Observaciones'] ?? '',
+      estadoInscripcion:
+          inscripcionJson['Estado'] ?? 0, // Nota: 'Estado' en inscripción
+      valorNumerico: inscripcionJson['ValorNumerico'] ?? 0,
+      // Campos del JSON de respuesta (ya vienen formateados)
+      categoriaNombre: actividadJson['CategoriaNombre'] ?? '',
+      periodoNombre: actividadJson['PeriodoNombre'] ?? '',
     );
   }
 
@@ -160,6 +206,8 @@ class ActividadHistorial {
     String? observaciones,
     int? estadoInscripcion,
     int? valorNumerico,
+    String? categoriaNombre,
+    String? periodoNombre,
   }) {
     return ActividadHistorial(
       categoria: categoria,
@@ -183,6 +231,8 @@ class ActividadHistorial {
       observaciones: observaciones ?? this.observaciones,
       estadoInscripcion: estadoInscripcion ?? this.estadoInscripcion,
       valorNumerico: valorNumerico ?? this.valorNumerico,
+      categoriaNombre: categoriaNombre ?? this.categoriaNombre,
+      periodoNombre: periodoNombre ?? this.periodoNombre,
     );
   }
 }
