@@ -121,49 +121,6 @@ class ActividadHistorial {
     );
   }
 
-  // Métodos auxiliares para conversión segura (mantenidos por si acaso)
-  static int _toInt(dynamic value) {
-    if (value == null) return 0;
-    if (value is int) return value;
-    if (value is double) return value.toInt();
-    if (value is String) {
-      try {
-        return int.tryParse(value) ?? 0;
-      } catch (_) {
-        return 0;
-      }
-    }
-    return 0;
-  }
-
-  static int? _toIntNullable(dynamic value) {
-    if (value == null) return null;
-    if (value is int) return value;
-    if (value is double) return value.toInt();
-    if (value is String) {
-      try {
-        return int.tryParse(value);
-      } catch (_) {
-        return null;
-      }
-    }
-    return null;
-  }
-
-  static double _toDouble(dynamic value) {
-    if (value == null) return 0.0;
-    if (value is double) return value;
-    if (value is int) return value.toDouble();
-    if (value is String) {
-      try {
-        return double.tryParse(value) ?? 0.0;
-      } catch (_) {
-        return 0.0;
-      }
-    }
-    return 0.0;
-  }
-
   // Métodos auxiliares para compatibilidad con tu UI existente
   String get estadoTexto {
     // Usar estadoInscripcion si está disponible, sino usar estado de la actividad
