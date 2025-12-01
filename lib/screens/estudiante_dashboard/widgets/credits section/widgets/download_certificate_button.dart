@@ -54,7 +54,7 @@ class DownloadCertificateButton extends StatelessWidget {
       onPressed: onPressedAction,
       icon: Icon(Icons.picture_as_pdf, color: colorIcono, size: 18),
       label: Text(
-        'Descargar constancia de liberación',
+        'Ver constancia de liberación',
         style: TextStyle(
           color: colorTexto,
           fontWeight: FontWeight.w600,
