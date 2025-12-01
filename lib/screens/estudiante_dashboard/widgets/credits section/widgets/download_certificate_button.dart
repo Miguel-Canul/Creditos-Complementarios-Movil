@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart'; // Importar url_launcher
 import '../../../../../../utils/constants.dart';
 
 class DownloadCertificateButton extends StatelessWidget {
@@ -11,22 +12,31 @@ class DownloadCertificateButton extends StatelessWidget {
     required this.urlConstancia,
   });
 
+  // Método: Maneja el lanzamiento de la URL (Descarga/Vista del PDF)
+  Future<void> _lanzarUrlConstancia(String url) async {
+    final uri = Uri.parse(url);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      // Si la URL no puede ser lanzada (ej: formato incorrecto)
+      print('Error: No se pudo lanzar la URL $url'); 
+      throw Exception('No se pudo lanzar la URL $url');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Condición de Activación: Solo debe cumplir los créditos.
     final bool botonActivo = creditosObtenidos >= Constants.creditosRequeridos;
 
-    // Si el botón está activo, se usa la función de descarga (placeholder).
     final VoidCallback? onPressedAction = botonActivo
         ? () {
             if (urlConstancia != null) {
-              print('Intentando descargar de: $urlConstancia');
-              // Aquí irá la lógica de lanzamiento o descarga de URL
+              // Llamada a la función de lanzamiento
+              _lanzarUrlConstancia(urlConstancia!);
             } else {
               print('Créditos suficientes, pero URL de constancia nula.');
             }
           }
-        : null; // null desactiva el TextButton
+        : null;
 
     final Color colorTexto =
         botonActivo ? const Color(Constants.accentColor) : Colors.grey;
@@ -41,7 +51,7 @@ class DownloadCertificateButton extends StatelessWidget {
         alignment: Alignment.centerRight,
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       ),
-      onPressed: onPressedAction, // Usa la función o null
+      onPressed: onPressedAction,
       icon: Icon(Icons.picture_as_pdf, color: colorIcono, size: 18),
       label: Text(
         'Descargar constancia de liberación',
