@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mobile/screens/historial_actividades_screen.dart';
+import 'package:mobile/screens/historial_actividades_screen/historial_actividades_screen.dart';
 import '../../../../../../utils/constants.dart';
 
 class ViewHistoryButton extends StatelessWidget {

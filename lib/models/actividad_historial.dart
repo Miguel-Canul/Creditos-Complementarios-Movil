@@ -21,7 +21,11 @@ class ActividadHistorial {
   final int? desempenoParcial;
   final String? observaciones;
   final int? estadoInscripcion;
-  final int? valorNumerico;
+  final double? valorNumerico; // <-- Cambiado a double
+
+  // Nuevos campos del JSON de respuesta
+  final String? categoriaNombre;
+  final String? periodoNombre;
 
   ActividadHistorial({
     required this.categoria,
@@ -46,32 +50,74 @@ class ActividadHistorial {
     this.observaciones,
     this.estadoInscripcion,
     this.valorNumerico,
+    // Campos del JSON de respuesta
+    this.categoriaNombre,
+    this.periodoNombre,
   });
 
   factory ActividadHistorial.fromJson(Map<String, dynamic> json) {
     return ActividadHistorial(
-      categoria: json['Categoria'] ?? '',
-      nombre: json['Nombre'] ?? '',
-      descripcion: json['Descripcion'] ?? '',
-      ubicacion: json['Ubicacion'] ?? '',
-      cantidadCreditos: (json['CantidadCreditos'] ?? 0).toDouble(),
-      periodo: json['Periodo'] ?? '',
-      estado: json['Estado'] ?? 0,
-      encargado: json['Encargado'] ?? '',
-      fechaFin: json['FechaFin'] ?? '',
-      departamento: json['Departamento'] ?? '',
-      cupoActual: json['CupoActual'] ?? 0,
-      fechaInicio: json['FechaInicio'] ?? '',
-      cupoMaximo: json['CupoMaximo'] ?? 0,
-      pk: json['PK'] ?? '',
-      fotoURL: json['FotoURL'] ?? '',
-      sk: json['SK'] ?? '',
+      categoria: json['Categoria']?.toString() ?? '',
+      nombre: json['Nombre']?.toString() ?? '',
+      descripcion: json['Descripcion']?.toString() ?? '',
+      ubicacion: json['Ubicacion']?.toString() ?? '',
+      cantidadCreditos: (json['CantidadCreditos'] ?? 0.0).toDouble(),
+      periodo: json['Periodo']?.toString() ?? '',
+      estado: (json['Estado'] ?? 0).toInt(),
+      encargado: json['Encargado']?.toString() ?? '',
+      fechaFin: json['FechaFin']?.toString() ?? '',
+      departamento: json['Departamento']?.toString() ?? '',
+      cupoActual: (json['CupoActual'] ?? 0).toInt(),
+      fechaInicio: json['FechaInicio']?.toString() ?? '',
+      cupoMaximo: (json['CupoMaximo'] ?? 0).toInt(),
+      pk: json['PK']?.toString() ?? '',
+      fotoURL: json['FotoURL']?.toString() ?? '',
+      sk: json['SK']?.toString() ?? '',
       // Inicializar nuevos campos con valores por defecto
-      desempeno: json['Desempeno'] ?? 0,
-      desempenoParcial: json['DesempenoParcial'] ?? 0,
-      observaciones: json['Observaciones'] ?? '',
-      estadoInscripcion: json['EstadoInscripcion'] ?? 0,
-      valorNumerico: json['ValorNumerico'] ?? 0,
+      desempeno: (json['Desempeno'] ?? 0).toInt(),
+      desempenoParcial: (json['DesempenoParcial'] ?? 0).toInt(),
+      observaciones: json['Observaciones']?.toString() ?? '',
+      estadoInscripcion: (json['EstadoInscripcion'] ?? 0).toInt(),
+      valorNumerico: (json['ValorNumerico'] ?? 0.0).toDouble(), // <-- Cambiado
+      // Campos del JSON de respuesta
+      categoriaNombre: json['CategoriaNombre']?.toString() ?? '',
+      periodoNombre: json['PeriodoNombre']?.toString() ?? '',
+    );
+  }
+
+  // Método para crear desde el JSON de historial (con inscripción combinada)
+  factory ActividadHistorial.fromHistorialJson(
+      Map<String, dynamic> historialJson) {
+    final actividadJson = historialJson['actividad'] ?? {};
+    final inscripcionJson = historialJson['inscripcion'] ?? {};
+
+    return ActividadHistorial(
+      categoria: actividadJson['Categoria']?.toString() ?? '',
+      nombre: actividadJson['Nombre']?.toString() ?? '',
+      descripcion: actividadJson['Descripcion']?.toString() ?? '',
+      ubicacion: actividadJson['Ubicacion']?.toString() ?? '',
+      cantidadCreditos: (actividadJson['CantidadCreditos'] ?? 0.0).toDouble(),
+      periodo: actividadJson['Periodo']?.toString() ?? '',
+      estado: (actividadJson['Estado'] ?? 0).toInt(),
+      encargado: actividadJson['Encargado']?.toString() ?? '',
+      fechaFin: actividadJson['FechaFin']?.toString() ?? '',
+      departamento: actividadJson['Departamento']?.toString() ?? '',
+      cupoActual: (actividadJson['CupoActual'] ?? 0).toInt(),
+      fechaInicio: actividadJson['FechaInicio']?.toString() ?? '',
+      cupoMaximo: (actividadJson['CupoMaximo'] ?? 0).toInt(),
+      pk: actividadJson['PK']?.toString() ?? '',
+      fotoURL: actividadJson['FotoURL']?.toString() ?? '',
+      sk: actividadJson['SK']?.toString() ?? '',
+      // Campos de la inscripción
+      desempeno: (inscripcionJson['Desempeno'] ?? 0).toInt(),
+      desempenoParcial: (inscripcionJson['DesempenoParcial'] ?? 0).toInt(),
+      observaciones: inscripcionJson['Observaciones']?.toString() ?? '',
+      estadoInscripcion: (inscripcionJson['Estado'] ?? 0).toInt(),
+      valorNumerico:
+          (inscripcionJson['ValorNumerico'] ?? 0.0).toDouble(), // <-- Cambiado
+      // Campos del JSON de respuesta
+      categoriaNombre: actividadJson['CategoriaNombre']?.toString() ?? '',
+      periodoNombre: actividadJson['PeriodoNombre']?.toString() ?? '',
     );
   }
 
@@ -132,6 +178,12 @@ class ActividadHistorial {
     }
   }
 
+  // Getter para mostrar valorNumerico formateado (opcional)
+  String get valorNumericoFormateado {
+    if (valorNumerico == null) return '0.0';
+    return valorNumerico!.toStringAsFixed(2); // 2 decimales
+  }
+
   String? get folio => pk.isNotEmpty ? pk.split('#').last : null;
 
   DateTime? get fechaInicioDate {
@@ -159,7 +211,9 @@ class ActividadHistorial {
     int? desempenoParcial,
     String? observaciones,
     int? estadoInscripcion,
-    int? valorNumerico,
+    double? valorNumerico, // <-- Cambiado a double
+    String? categoriaNombre,
+    String? periodoNombre,
   }) {
     return ActividadHistorial(
       categoria: categoria,
@@ -183,6 +237,8 @@ class ActividadHistorial {
       observaciones: observaciones ?? this.observaciones,
       estadoInscripcion: estadoInscripcion ?? this.estadoInscripcion,
       valorNumerico: valorNumerico ?? this.valorNumerico,
+      categoriaNombre: categoriaNombre ?? this.categoriaNombre,
+      periodoNombre: periodoNombre ?? this.periodoNombre,
     );
   }
 }
