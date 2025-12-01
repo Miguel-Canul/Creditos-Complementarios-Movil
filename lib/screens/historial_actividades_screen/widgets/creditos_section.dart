@@ -13,6 +13,7 @@ class CreditosSection extends StatelessWidget {
     // Verificar si hay datos
     final hasCreditData = viewModel.creditosPorCategoria.isNotEmpty;
     final numeroCategorias = viewModel.creditosPorCategoria.keys.length;
+    // ignore: unused_local_variable
     final maximoTotal = (numeroCategorias * 2).toDouble();
 
     return Container(
