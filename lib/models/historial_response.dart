@@ -54,7 +54,7 @@ class Inscripcion {
   final String observaciones;
   final int desempenoParcial;
   final String pk;
-  final int valorNumerico;
+  final double valorNumerico;
 
   Inscripcion({
     required this.desempeno,
@@ -74,7 +74,7 @@ class Inscripcion {
       observaciones: json['Observaciones'] ?? '',
       desempenoParcial: json['DesempenoParcial'] ?? 0,
       pk: json['PK'] ?? '',
-      valorNumerico: json['ValorNumerico'] ?? 0,
+      valorNumerico: (json['ValorNumerico'] ?? 0).toDouble(),
     );
   }
 }
