@@ -5,7 +5,8 @@ class ActividadHistorial {
   final String ubicacion;
   final double cantidadCreditos;
   final String periodo;
-  final int estado;
+  final int
+      estado; // Estado de la actividad (0: En curso, 1: Completado, 2: Esperando aprobación)
   final String encargado;
   final String fechaFin;
   final String departamento;
@@ -16,14 +17,14 @@ class ActividadHistorial {
   final String fotoURL;
   final String sk;
 
-  // Nuevos campos para la inscripción
+  // Campos de la inscripción
   final int? desempeno;
   final int? desempenoParcial;
   final String? observaciones;
-  final int? estadoInscripcion;
-  final double? valorNumerico; // <-- Cambiado a double
+  final int? estadoInscripcion; // 0: En curso, 1: Aprobado, 2: Reprobado
+  final double? valorNumerico;
 
-  // Nuevos campos del JSON de respuesta
+  // Campos del JSON de respuesta
   final String? categoriaNombre;
   final String? periodoNombre;
 
@@ -44,7 +45,7 @@ class ActividadHistorial {
     required this.pk,
     required this.fotoURL,
     required this.sk,
-    // Nuevos campos opcionales
+    // Campos de inscripción
     this.desempeno,
     this.desempenoParcial,
     this.observaciones,
@@ -73,12 +74,13 @@ class ActividadHistorial {
       pk: json['PK']?.toString() ?? '',
       fotoURL: json['FotoURL']?.toString() ?? '',
       sk: json['SK']?.toString() ?? '',
-      // Inicializar nuevos campos con valores por defecto
+      // Inicializar campos de inscripción
       desempeno: (json['Desempeno'] ?? 0).toInt(),
       desempenoParcial: (json['DesempenoParcial'] ?? 0).toInt(),
       observaciones: json['Observaciones']?.toString() ?? '',
-      estadoInscripcion: (json['EstadoInscripcion'] ?? 0).toInt(),
-      valorNumerico: (json['ValorNumerico'] ?? 0.0).toDouble(), // <-- Cambiado
+      estadoInscripcion:
+          (json['EstadoInscripcion'] ?? json['Estado'] ?? 0).toInt(),
+      valorNumerico: (json['ValorNumerico'] ?? 0.0).toDouble(),
       // Campos del JSON de respuesta
       categoriaNombre: json['CategoriaNombre']?.toString() ?? '',
       periodoNombre: json['PeriodoNombre']?.toString() ?? '',
@@ -90,6 +92,9 @@ class ActividadHistorial {
       Map<String, dynamic> historialJson) {
     final actividadJson = historialJson['actividad'] ?? {};
     final inscripcionJson = historialJson['inscripcion'] ?? {};
+
+    // Obtener el estado de la inscripción, si no existe usar 0 (En curso) como valor por defecto
+    final estadoInscripcion = (inscripcionJson['Estado'] ?? 0).toInt();
 
     return ActividadHistorial(
       categoria: actividadJson['Categoria']?.toString() ?? '',
@@ -108,13 +113,13 @@ class ActividadHistorial {
       pk: actividadJson['PK']?.toString() ?? '',
       fotoURL: actividadJson['FotoURL']?.toString() ?? '',
       sk: actividadJson['SK']?.toString() ?? '',
-      // Campos de la inscripción
+      // Campos de la inscripción - SIEMPRE usar los de inscripción
       desempeno: (inscripcionJson['Desempeno'] ?? 0).toInt(),
       desempenoParcial: (inscripcionJson['DesempenoParcial'] ?? 0).toInt(),
       observaciones: inscripcionJson['Observaciones']?.toString() ?? '',
-      estadoInscripcion: (inscripcionJson['Estado'] ?? 0).toInt(),
-      valorNumerico:
-          (inscripcionJson['ValorNumerico'] ?? 0.0).toDouble(), // <-- Cambiado
+      estadoInscripcion:
+          estadoInscripcion, // <-- Usar el estado de la inscripción
+      valorNumerico: (inscripcionJson['ValorNumerico'] ?? 0.0).toDouble(),
       // Campos del JSON de respuesta
       categoriaNombre: actividadJson['CategoriaNombre']?.toString() ?? '',
       periodoNombre: actividadJson['PeriodoNombre']?.toString() ?? '',
@@ -122,21 +127,34 @@ class ActividadHistorial {
   }
 
   // Métodos auxiliares para compatibilidad con tu UI existente
+  // SIEMPRE usar estadoInscripcion (0: En curso, 1: Aprobado, 2: Reprobado)
   String get estadoTexto {
-    // Usar estadoInscripcion si está disponible, sino usar estado de la actividad
-    final estadoFinal = estadoInscripcion ?? estado;
+    // SIEMPRE usar estadoInscripcion, nunca el estado de la actividad
+    final estadoFinal = estadoInscripcion ??
+        0; // Si es null, usar 0 (En curso) como valor por defecto
 
     switch (estadoFinal) {
       case 0:
         return 'En curso';
       case 1:
-        return 'Completado';
+        return 'Aprobado';
       case 2:
-        return 'Esperando aprobación';
+        return 'Reprobado';
       default:
         return 'Desconocido';
     }
   }
+
+  // Métodos booleanos para verificar el estado de la inscripción
+  bool get estaAprobado => (estadoInscripcion ?? 0) == 1;
+  bool get estaReprobado => (estadoInscripcion ?? 0) == 2;
+  bool get estaEnCurso => (estadoInscripcion ?? 0) == 0;
+
+  // Método para verificar si la actividad otorga créditos (aprobada)
+  bool get otorgaCreditos => estaAprobado;
+
+  // Método para obtener créditos otorgados (solo si está aprobado)
+  double get creditosOtorgados => estaAprobado ? cantidadCreditos : 0.0;
 
   String get desempenioTexto {
     // Usar el desempeño de la inscripción
@@ -211,7 +229,7 @@ class ActividadHistorial {
     int? desempenoParcial,
     String? observaciones,
     int? estadoInscripcion,
-    double? valorNumerico, // <-- Cambiado a double
+    double? valorNumerico,
     String? categoriaNombre,
     String? periodoNombre,
   }) {
@@ -240,5 +258,25 @@ class ActividadHistorial {
       categoriaNombre: categoriaNombre ?? this.categoriaNombre,
       periodoNombre: periodoNombre ?? this.periodoNombre,
     );
+  }
+
+  // Método para comparar basado en el estado de inscripción
+  bool tieneEstadoInscripcion(int estado) {
+    return (estadoInscripcion ?? 0) == estado;
+  }
+
+  // Método para obtener el color del estado (útil para UI)
+  // Puedes ajustar estos colores según tu tema
+  String get estadoColor {
+    switch (estadoInscripcion ?? 0) {
+      case 0: // En curso
+        return '0xFF2196F3'; // Azul
+      case 1: // Aprobado
+        return '0xFF4CAF50'; // Verde
+      case 2: // Reprobado
+        return '0xFFF44336'; // Rojo
+      default:
+        return '0xFF9E9E9E'; // Gris
+    }
   }
 }

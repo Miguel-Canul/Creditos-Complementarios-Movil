@@ -42,7 +42,7 @@ class HistorialItem {
   factory HistorialItem.fromJson(Map<String, dynamic> json) {
     return HistorialItem(
       inscripcion: Inscripcion.fromJson(json['inscripcion'] ?? {}),
-      actividad: ActividadHistorial.fromJson(json['actividad'] ?? {}),
+      actividad: ActividadHistorial.fromHistorialJson(json),
     );
   }
 }

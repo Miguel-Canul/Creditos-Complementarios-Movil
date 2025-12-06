@@ -7,250 +7,182 @@ class ActividadCard extends StatelessWidget {
 
   const ActividadCard({super.key, required this.actividad});
 
-  BuildContext? get context => null;
-
   @override
   Widget build(BuildContext context) {
-    final bool isCompletado =
-        actividad.estadoTexto.toLowerCase() == 'completado';
-    final bool isEnCurso = actividad.estadoTexto.toLowerCase() == 'en curso';
+    final bool isAprobado = actividad.estaAprobado;
+    final bool isReprobado = actividad.estaReprobado;
+    final bool isEnCurso = actividad.estaEnCurso;
 
     return Container(
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
         children: [
-          _buildActivityImage(),
-          _buildActivityHeader(isCompletado),
-          _buildActivityDetails(isEnCurso),
+          // CONTENIDO PRINCIPAL
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const SizedBox(width: 8),
+              _buildLeftImage(),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: _buildRightContent(
+                    isAprobado: isAprobado,
+                    isReprobado: isReprobado,
+                    isEnCurso: isEnCurso,
+                    context: context,
+                  ),
+                ),
+              ),
+              // Espacio extra a la derecha para que el botón no tape el texto
+              const SizedBox(width: 40),
+            ],
+          ),
+
+          // BOTÓN DE DESCARGA EN ESQUINA INFERIOR DERECHA
+          if (isAprobado)
+            Positioned(
+              right: 12,
+              bottom: 12,
+              child: IconButton(
+                icon: Icon(Icons.download,
+                    size: 22, color: Theme.of(context).primaryColor),
+                onPressed: () => _descargarConstancia(context),
+              ),
+            ),
         ],
       ),
     );
   }
 
-  Widget _buildActivityImage() {
+  // -------------------------
+  //   IMAGEN IZQUIERDA
+  // -------------------------
+  Widget _buildLeftImage() {
     return ClipRRect(
       borderRadius: const BorderRadius.only(
         topLeft: Radius.circular(12),
-        topRight: Radius.circular(12),
+        bottomLeft: Radius.circular(12),
       ),
-      child: Container(
-        height: 140,
-        width: double.infinity,
+      child: SizedBox(
+        width: 100,
+        height: 120,
         child: Image.network(
           actividad.fotoURL.isNotEmpty
               ? actividad.fotoURL
-              : 'https://via.placeholder.com/400x200?text=Sin+Imagen',
+              : 'https://via.placeholder.com/150?text=Sin+Imagen',
           fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            return Container(
-              color: Colors.grey[100],
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.image,
-                    size: 40,
-                    color: Colors.grey[400],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Imagen no disponible',
-                    style: TextStyle(
-                      color: Colors.grey[500],
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget _buildActivityHeader(bool isCompletado) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: _getEstadoColor(actividad.estadoTexto).withOpacity(0.1),
-        border: Border(
-          bottom: BorderSide(
-            color: Colors.grey[200]!,
-            width: 1,
-          ),
-        ),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  actividad.nombre,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                _buildCategoryChip(),
-              ],
+          errorBuilder: (_, __, ___) => Container(
+            color: Colors.grey[200],
+            child: Icon(
+              Icons.image_not_supported,
+              size: 40,
+              color: Colors.grey[400],
             ),
           ),
-          if (isCompletado) _buildDownloadButton(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCategoryChip() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: const Color(0xFF2E7D32).withOpacity(0.1),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(
-        actividad.categoriaNombre ?? 'Sin categoría',
-        style: const TextStyle(
-          fontSize: 12,
-          color: Color(0xFF2E7D32),
-          fontWeight: FontWeight.w500,
         ),
       ),
     );
   }
 
-  Widget _buildDownloadButton() {
-    return IconButton(
-      onPressed: () => _descargarConstancia(context!),
-      icon: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: const Color(0xFF2E7D32),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: const Icon(
-          Icons.file_download,
-          color: Colors.white,
-          size: 20,
-        ),
-      ),
-      tooltip: 'Descargar constancia',
-    );
-  }
-
-  Widget _buildActivityDetails(bool isEnCurso) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: _buildDetailItem(
-                  'Período:',
-                  actividad.periodoNombre ?? 'Sin período',
-                  Icons.calendar_today,
-                  Colors.blue,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildDetailItem(
-                  'Estado:',
-                  actividad.estadoTexto,
-                  Icons.info_outline,
-                  _getEstadoColor(actividad.estadoTexto),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          _buildDetailItem(
-            isEnCurso ? 'Desempeño parcial:' : 'Desempeño:',
-            actividad.desempenioTexto,
-            Icons.assessment,
-            _getDesempenioColor(actividad.desempenioTexto),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDetailItem(
-      String label, String value, IconData icon, Color color) {
+  // -------------------------
+  //   CONTENIDO DERECHO
+  // -------------------------
+  Widget _buildRightContent({
+    required bool isAprobado,
+    required bool isReprobado,
+    required bool isEnCurso,
+    required BuildContext context,
+  }) {
     return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Icon(
-              icon,
-              size: 16,
-              color: color,
-            ),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
+        // TÍTULO
         Text(
-          value,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: color,
+          actividad.nombre,
+          style: const TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
           ),
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
         ),
+
+        const SizedBox(height: 6),
+
+        // PERÍODO
+        Text(
+          "Periodo: ${actividad.periodoNombre ?? 'Sin período'}",
+          style: TextStyle(fontSize: 13, color: Colors.grey[700]),
+        ),
+
+        // ESTADO
+        Text(
+          "Estado: ${actividad.estadoTexto}",
+          style: TextStyle(
+            fontSize: 13,
+            color: _getEstadoColor(actividad.estadoTexto),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+
+        // DESEMPEÑO
+        if (isEnCurso)
+          Text(
+            "Desempeño parcial: ${actividad.desempenioParcialTexto}",
+            style: TextStyle(
+              fontSize: 13,
+              color: _getDesempenioColor(actividad.desempenioParcialTexto),
+            ),
+          ),
+
+        if (isAprobado || isReprobado)
+          Text(
+            "Desempeño: ${actividad.desempenioTexto}",
+            style: TextStyle(
+              fontSize: 13,
+              color: _getDesempenioColor(actividad.desempenioTexto),
+            ),
+          ),
       ],
     );
   }
 
+  // -------------------------------------
+  //              COLORES
+  // -------------------------------------
   Color _getEstadoColor(String estado) {
     switch (estado.toLowerCase()) {
-      case 'completado':
+      case 'aprobado':
         return Colors.green;
+      case 'reprobado':
+        return Colors.red;
       case 'en curso':
-        return Colors.orange;
-      case 'esperando aprobación':
         return Colors.blue;
+      case 'esperando aprobación':
+        return Colors.orange;
       default:
         return Colors.grey;
     }
   }
 
-  Color _getDesempenioColor(String? desempenio) {
-    if (desempenio == null || desempenio.isEmpty) return Colors.grey;
+  Color _getDesempenioColor(String? d) {
+    if (d == null) return Colors.grey;
 
-    switch (desempenio.toLowerCase()) {
+    switch (d.toLowerCase()) {
       case 'excelente':
         return Colors.green;
       case 'notable':
@@ -264,14 +196,25 @@ class ActividadCard extends StatelessWidget {
     }
   }
 
+  // -------------------------------------
+  //            DESCARGAR PDF
+  // -------------------------------------
   void _descargarConstancia(BuildContext context) {
+    if (!actividad.estaAprobado) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Solo disponible para actividades aprobadas'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Descargando constancia de ${actividad.nombre}'),
         backgroundColor: const Color(Constants.successColor),
-        duration: const Duration(seconds: 2),
       ),
     );
-    print('Iniciando descarga para: ${actividad.nombre}');
   }
 }
