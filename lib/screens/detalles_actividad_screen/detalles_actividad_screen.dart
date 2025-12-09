@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/screens/shared_widgets/ActivityInfoCard.dart';
+import 'package:mobile/screens/shared_widgets/activity_carousel.dart';
 import 'package:mobile/screens/widgets/ActivityDescriptionWidget.dart';
 import 'package:mobile/screens/widgets/ActivityHeaderWidget.dart';
-import 'package:mobile/screens/widgets/ActivityInfoCard.dart';
-import 'package:mobile/screens/widgets/activity_carousel.dart';
+import 'package:mobile/screens/widgets/custom_sliver_app_bar.dart';
 import '../../models/actividad_historial.dart';
-import '../widgets/custom_sliver_app_bar.dart';
 
 class DetallesActividadScreen extends StatelessWidget {
   const DetallesActividadScreen({super.key});

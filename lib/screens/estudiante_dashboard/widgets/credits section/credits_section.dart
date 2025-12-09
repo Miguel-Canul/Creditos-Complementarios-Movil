@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:mobile/screens/widgets/progress_bar.dart';
+import 'package:provider/provider.dart';
 import 'package:mobile/screens/estudiante_dashboard/widgets/credits%20section/widgets/view_history_button.dart'; // Nuevo widget
 import 'package:mobile/screens/estudiante_dashboard/widgets/credits%20section/widgets/download_certificate_button.dart'; // Nuevo widget
 import '../../../../utils/constants.dart';
