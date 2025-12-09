@@ -23,6 +23,7 @@ dependencies:
   # NUEVA DEPENDENCIA para login y configuraciones
   shared_preferences: ^2.2.2
   amazon_cognito_identity_dart_2: ^3.8.1
+  smooth_page_indicator: ^1.1.0
   
   # Dependencias de UI (opcionales pero recomendadas)
   # flutter_svg: ^2.0.9         # Solo si usas iconos SVG

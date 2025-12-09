@@ -33,17 +33,47 @@ class HistorialResponse {
 class HistorialItem {
   final Inscripcion inscripcion;
   final ActividadHistorial actividad;
+  final List<Map<String, dynamic>> horarios; // Nuevo campo
 
   HistorialItem({
     required this.inscripcion,
     required this.actividad,
+    required this.horarios, // Agregado como requerido
   });
 
   factory HistorialItem.fromJson(Map<String, dynamic> json) {
+    // Procesar horarios
+    final List<Map<String, dynamic>> horariosList = [];
+    if (json['horarios'] is List) {
+      for (var horario in json['horarios']) {
+        if (horario is Map<String, dynamic>) {
+          horariosList.add(horario);
+        }
+      }
+    }
+
     return HistorialItem(
       inscripcion: Inscripcion.fromJson(json['inscripcion'] ?? {}),
       actividad: ActividadHistorial.fromHistorialJson(json),
+      horarios: horariosList,
     );
+  }
+
+  // Método auxiliar para obtener el JSON completo combinado
+  Map<String, dynamic> toCombinedJson() {
+    return {
+      'inscripcion': {
+        'Desempeno': inscripcion.desempeno,
+        'Estado': inscripcion.estado,
+        'SK': inscripcion.sk,
+        'Observaciones': inscripcion.observaciones,
+        'DesempenoParcial': inscripcion.desempenoParcial,
+        'PK': inscripcion.pk,
+        'ValorNumerico': inscripcion.valorNumerico,
+      },
+      'actividad': actividad.toMap(),
+      'horarios': horarios,
+    };
   }
 }
 
