@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/screens/estudiante_dashboard/estudiante_dashboard_screen.dart';
+import 'package:mobile/screens/screen_login/registro_estudiante_screen.dart';
 import 'package:provider/provider.dart';
-import '../services/auth_service.dart';
-import '../utils/constants.dart';
+import '../../services/auth_service.dart';
+import '../../utils/constants.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -18,7 +19,6 @@ class _LoginScreenState extends State<LoginScreen>
   final _passwordController = TextEditingController();
 
   bool _obscurePassword = true;
-  bool _rememberMe = false;
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -69,7 +69,6 @@ class _LoginScreenState extends State<LoginScreen>
     ));
 
     _animationController.forward();
-    _cargarCredencialesGuardadas();
   }
 
   @override
@@ -79,19 +78,6 @@ class _LoginScreenState extends State<LoginScreen>
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
-  }
-
-  Future<void> _cargarCredencialesGuardadas() async {
-    final authService = context.read<AuthService>();
-    final credenciales = await authService.obtenerCredencialesGuardadas();
-
-    if (credenciales != null) {
-      setState(() {
-        _emailController.text = credenciales['email'] ?? '';
-        _passwordController.text = credenciales['password'] ?? '';
-        _rememberMe = true;
-      });
-    }
   }
 
   Future<void> _iniciarSesion() async {
@@ -110,7 +96,7 @@ class _LoginScreenState extends State<LoginScreen>
       final result = await authService.login(
         _emailController.text.trim(),
         _passwordController.text,
-        _rememberMe,
+        false, // Recordarme eliminado
       );
 
       setState(() => _isLoading = false);
@@ -434,72 +420,39 @@ class _LoginScreenState extends State<LoginScreen>
 
           const SizedBox(height: 16),
 
-          // Recordarme y error message
-          Column(
-            children: [
-              // Checkbox recordarme
-              Row(
+          // Mensaje de error
+          if (_errorMessage != null) ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(Constants.dangerColor).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: const Color(Constants.dangerColor).withOpacity(0.3),
+                ),
+              ),
+              child: Row(
                 children: [
-                  Transform.scale(
-                    scale: 0.9,
-                    child: Checkbox(
-                      value: _rememberMe,
-                      onChanged: (value) {
-                        setState(() => _rememberMe = value ?? false);
-                      },
-                      activeColor: const Color(Constants.primaryColor),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
+                  const Icon(
+                    Icons.error_outline,
+                    color: Color(Constants.dangerColor),
+                    size: 20,
                   ),
-                  Text(
-                    'Recordarme',
-                    style: TextStyle(
-                      color: Colors.grey[700],
-                      fontSize: 14,
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _errorMessage!,
+                      style: const TextStyle(
+                        color: Color(Constants.dangerColor),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 ],
               ),
-
-              // Mensaje de error
-              if (_errorMessage != null) ...[
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: const Color(Constants.dangerColor).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color:
-                          const Color(Constants.dangerColor).withOpacity(0.3),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.error_outline,
-                        color: Color(Constants.dangerColor),
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          _errorMessage!,
-                          style: const TextStyle(
-                            color: Color(Constants.dangerColor),
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ],
-          ),
+            ),
+          ],
         ],
       ),
     );
@@ -615,7 +568,13 @@ class _LoginScreenState extends State<LoginScreen>
           ),
           child: TextButton(
             onPressed: () {
-              // Por el momento no hace nada
+              // Navegar a la pantalla de registro
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const RegistroEstudianteScreen(),
+                ),
+              );
             },
             style: TextButton.styleFrom(
               shape: RoundedRectangleBorder(
@@ -623,29 +582,12 @@ class _LoginScreenState extends State<LoginScreen>
               ),
             ),
             child: const Text(
-              'Crear nueva cuenta',
+              'Registrarse', // Cambiado de "Crear nueva cuenta" a "Registrarse"
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: Color(Constants.primaryColor),
               ),
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 16),
-
-        // Enlace de olvidé contraseña
-        TextButton(
-          onPressed: () {
-            // Por el momento no hace nada
-          },
-          child: const Text(
-            '¿Olvidaste tu contraseña?',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Color(Constants.primaryColor),
             ),
           ),
         ),

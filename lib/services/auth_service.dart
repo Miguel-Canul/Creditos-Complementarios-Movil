@@ -214,67 +214,209 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-  // REGISTRO CON COGNITO
   Future<Map<String, dynamic>> registro(
       String nombreCompleto, String email, String password) async {
     try {
-      print('Intentando registro en Cognito para: $email');
+      print('=== INICIANDO REGISTRO DE ESTUDIANTE ===');
 
+      // 1. Validar formato del email/número de control
+      String emailCompleto = email.trim();
+
+      // Si el usuario solo ingresó el número de control (ej: L21390301)
+      if (!emailCompleto.contains('@')) {
+        // Validar formato de número de control
+        if (!RegExp(r'^[Ll]\d{8}$').hasMatch(emailCompleto)) {
+          return {
+            'success': false,
+            'message':
+                'Formato incorrecto. Debe ser: L + 8 dígitos (ej: L21390301)'
+          };
+        }
+        // Convertir a mayúsculas y agregar dominio
+        emailCompleto = '${emailCompleto.toUpperCase()}@chetumal.tecnm.mx';
+      }
+
+      // Si ya incluyó el dominio, validarlo
+      else if (!emailCompleto.toLowerCase().endsWith('@chetumal.tecnm.mx')) {
+        return {
+          'success': false,
+          'message':
+              'Solo se permiten correos institucionales @chetumal.tecnm.mx'
+        };
+      }
+
+      print('📧 Email para registro: $emailCompleto');
+      print('👤 Nombre completo: $nombreCompleto');
+
+      // 2. Separar nombre y apellido (como se muestra en AWS)
+      final partes = nombreCompleto.trim().split(' ');
+      String givenName = '';
+      String familyName = '';
+
+      if (partes.length >= 2) {
+        // Tomar el primer elemento como given_name (nombre)
+        givenName = partes.first;
+        // El resto como family_name (apellidos)
+        familyName = partes.sublist(1).join(' ');
+      } else {
+        // Si solo ingresó un nombre, ponerlo en given_name
+        givenName = nombreCompleto;
+        familyName = ''; // Dejar vacío como en tu ejemplo
+      }
+
+      // 3. CREAR ATRIBUTOS EXACTAMENTE COMO EN TU AWS CONSOLE
       final attributeList = [
-        AttributeArg(name: 'email', value: email),
-        AttributeArg(name: 'name', value: nombreCompleto),
-        AttributeArg(name: 'custom:role', value: 'Estudiante'),
+        // Atributos OBLIGATORIOS (como en tu imagen):
+        AttributeArg(name: 'email', value: emailCompleto),
+
+        // Atributos OPCIONALES pero importantes:
+        AttributeArg(name: 'given_name', value: givenName), // "Marco Antonio"
+        AttributeArg(
+            name: 'family_name', value: familyName), // "González Arias"
       ];
 
-      final data = await _userPool.signUp(
-        email,
-        password,
+      print('📋 Atributos a enviar a Cognito:');
+      for (var attr in attributeList) {
+        print('   • ${attr.name}: ${attr.value}');
+      }
+
+      // 4. REGISTRAR EN COGNITO
+      print('🔄 Registrando usuario en Cognito...');
+      final result = await _userPool.signUp(
+        emailCompleto, // username (debe ser el email)
+        password, // password
         userAttributes: attributeList,
       );
 
-      if (data.userConfirmed!) {
-        print('Usuario registrado y confirmado en Cognito');
-        return {'success': true, 'message': 'Registro exitoso'};
+      print('✅ Resultado del registro:');
+      print('   - User Sub: ${result.userSub}'); // Este es el ID único
+      print('   - User Confirmed: ${result.userConfirmed}');
+
+      // Verificar si se requiere confirmación
+      final requiereConfirmacion = !result.userConfirmed!;
+
+      if (requiereConfirmacion) {
+        print('   - Se requiere confirmación por email');
       } else {
-        print('Usuario registrado pero requiere confirmación');
-        return {
-          'success': true,
-          'message':
-              'Registro exitoso. Verifica tu email para confirmar la cuenta.',
-          'requiresConfirmation': true
-        };
+        print('   - Usuario confirmado automáticamente');
       }
+
+      // 5. Retornar resultado
+      return {
+        'success': true,
+        'requiresConfirmation': requiereConfirmacion,
+        'userSub': result.userSub,
+        'email': emailCompleto,
+        'message': requiereConfirmacion
+            ? 'Registro exitoso. Se ha enviado un código de verificación a tu correo.'
+            : '¡Registro exitoso! Tu cuenta ha sido creada.',
+      };
     } on CognitoClientException catch (e) {
-      print('Error Cognito en registro: ${e.message}');
-      return {'success': false, 'message': _getCognitoErrorMessage(e)};
+      print('❌ ERROR Cognito en registro: ${e.code} - ${e.message}');
+
+      String mensajeError;
+      switch (e.code) {
+        case 'InvalidParameterException':
+          mensajeError = _analizarErrorParametrosInvalidos(e.message);
+          break;
+        case 'UsernameExistsException':
+          mensajeError = 'Este correo ya está registrado en el sistema.';
+          break;
+        case 'InvalidPasswordException':
+          mensajeError = '''
+La contraseña no cumple los requisitos:
+• Mínimo 8 caracteres
+• Al menos una letra mayúscula
+• Al menos un número
+• Al menos un carácter especial''';
+          break;
+        case 'InvalidEmailAddressException':
+          mensajeError = 'El formato del email no es válido.';
+          break;
+        default:
+          mensajeError =
+              e.message ?? 'Error en el registro. Intenta nuevamente.';
+      }
+
+      return {'success': false, 'message': mensajeError};
     } catch (e) {
-      print('Error inesperado en registro: $e');
-      return {'success': false, 'message': 'Error en el registro: $e'};
+      print('❌ ERROR inesperado en registro: $e');
+      return {
+        'success': false,
+        'message':
+            'Error inesperado. Verifica tu conexión e intenta nuevamente.'
+      };
     }
   }
 
-  // CONFIRMAR REGISTRO CON CÓDIGO
+// Método auxiliar para analizar errores de parámetros inválidos
+  String _analizarErrorParametrosInvalidos(String? mensajeError) {
+    if (mensajeError == null) {
+      return 'Parámetros inválidos. Verifica los datos ingresados.';
+    }
+
+    if (mensajeError.contains('email')) {
+      return 'El formato del correo electrónico no es válido.';
+    }
+
+    if (mensajeError.contains('attribute')) {
+      return 'Error en los datos personales. Verifica nombre y apellido.';
+    }
+
+    return 'Datos incorrectos. Verifica toda la información ingresada.';
+  }
+
+  // Método para confirmar registro
   Future<bool> confirmarRegistro(
       String email, String codigoConfirmacion) async {
     try {
+      print('🔐 Confirmando registro para: $email');
+      print('🔢 Código: $codigoConfirmacion');
+
       final user = CognitoUser(email, _userPool);
       final confirmed = await user.confirmRegistration(codigoConfirmacion);
 
-      return confirmed;
+      if (confirmed) {
+        print('✅ Confirmación exitosa');
+        return true;
+      } else {
+        print('❌ Confirmación fallida');
+        return false;
+      }
+    } on CognitoClientException catch (e) {
+      print('❌ Error en confirmación: ${e.code} - ${e.message}');
+
+      // Manejar errores específicos
+      if (e.code == 'CodeMismatchException') {
+        print('Código incorrecto');
+      } else if (e.code == 'ExpiredCodeException') {
+        print('Código expirado');
+      } else if (e.code == 'UserNotFoundException') {
+        print('Usuario no encontrado');
+      }
+
+      return false;
     } catch (e) {
-      print('Error al confirmar registro: $e');
+      print('❌ Error inesperado en confirmación: $e');
       return false;
     }
   }
 
-  // REENVIAR CÓDIGO DE CONFIRMACIÓN
+// Método para reenviar código
   Future<bool> reenviarCodigoConfirmacion(String email) async {
     try {
+      print('🔄 Reenviando código de confirmación para: $email');
+
       final user = CognitoUser(email, _userPool);
-      await user.resendConfirmationCode();
+      final result = await user.resendConfirmationCode();
+
+      print('✅ Código reenviado exitosamente');
       return true;
+    } on CognitoClientException catch (e) {
+      print('❌ Error al reenviar código: ${e.code} - ${e.message}');
+      return false;
     } catch (e) {
-      print('Error al reenviar código: $e');
+      print('❌ Error inesperado al reenviar: $e');
       return false;
     }
   }
