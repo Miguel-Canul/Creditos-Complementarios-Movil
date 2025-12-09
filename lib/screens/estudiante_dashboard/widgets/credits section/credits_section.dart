@@ -55,7 +55,8 @@ class _CreditsSectionState extends State<CreditsSection> {
       String? urlConstancia;
       if (cumpleRequisitos) {
         urlConstancia =
-            await _servicioApi.obtenerUrlConstanciaLiberacion(_idEstudiante!);
+            await _servicioApi.obtenerUrlConstanciaLiberacion(_idEstudiante!) ??
+                await _servicioApi.crearConstanciaLiberacion(_idEstudiante!);
       }
 
       setState(() {
@@ -107,7 +108,7 @@ class _CreditsSectionState extends State<CreditsSection> {
           const SizedBox(height: 8),
           const SizedBox(height: 2),
           // Uso de los nuevos widgets de botón
-          const ViewHistoryButton(), 
+          const ViewHistoryButton(),
           DownloadCertificateButton(
             creditosObtenidos: _creditosObtenidos,
             urlConstancia: _urlConstancia,

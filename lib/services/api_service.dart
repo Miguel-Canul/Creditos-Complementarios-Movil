@@ -149,4 +149,73 @@ class ApiService {
       rethrow;
     }
   }
+
+  Future<bool> inscribirAlumno(String idAlumno, String idActividad) async {
+    final String ruta = '${baseURL}alumnos/$idAlumno/inscripciones';
+    final Uri url = Uri.parse(ruta);
+
+    final Map<String, dynamic> cuerpo = {
+      'idActividad': idActividad,
+    };
+
+    try {
+      final http.Response respuesta = await http.post(
+        url,
+        headers: cabeceras,
+        body: json.encode(cuerpo),
+      );
+
+      // Manejo específico del código 403 (Cupo lleno / Límite de créditos)
+      if (respuesta.statusCode == 403) {
+        final respuestaJson = json.decode(respuesta.body);
+        final mensajeError =
+            respuestaJson['message'] ?? 'Error de inscripción: Prohibido.';
+        // Evitar efectos secundarios: Lanzar la excepción con el mensaje específico
+        throw Exception(mensajeError);
+      }
+
+      // Manejo de otros errores HTTP (400, 404, 500, etc.)
+      _handleError(respuesta);
+
+      // Si el código es 201 Created (éxito)
+      return true;
+    } catch (e) {
+      print('Error al inscribir alumno: $e');
+      rethrow;
+    }
+  }
+
+  Future<String> crearConstanciaLiberacion(String idAlumno) async {
+    final String ruta = '${baseURL}alumnos/$idAlumno/constancialiberacion';
+    final Uri url = Uri.parse(ruta);
+
+    try {
+      final http.Response respuesta = await http.post(
+        url,
+        headers: cabeceras,
+        body: json.encode({}), // Cuerpo vacío
+      );
+
+      // Manejo de Errores HTTP
+      _handleError(respuesta);
+
+      // Si el código es 201 Created (éxito)
+      final respuestaJson = json.decode(respuesta.body);
+
+      // Ocultar la estructura interna: Extracción segura del URL
+      if (respuestaJson['data'] != null) {
+        final Map<String, dynamic> datosConstancia = respuestaJson['data'];
+        final String? urlConstancia =
+            datosConstancia['constanciaUrl'] as String?;
+        if (urlConstancia != null) {
+          return urlConstancia;
+        }
+      }
+
+      throw Exception('La respuesta no contiene la URL de la constancia.');
+    } catch (e) {
+      print('Error al crear constancia de liberación: $e');
+      rethrow;
+    }
+  }
 }
