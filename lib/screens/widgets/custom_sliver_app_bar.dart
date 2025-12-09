@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../utils/constants.dart';
 import '../../services/auth_service.dart';
-import '../../screens/login_screen.dart';
+import '../screen_login/login_screen.dart';
 
 class CustomSliverAppBar extends StatelessWidget {
   // Parámetros agregados:
@@ -12,7 +12,8 @@ class CustomSliverAppBar extends StatelessWidget {
   const CustomSliverAppBar({
     super.key,
     required this.titulo, // 1. Título requerido
-    this.mostrarBotonRetroceso = false, // 2. Botón opcional, por defecto 'false'
+    this.mostrarBotonRetroceso =
+        false, // 2. Botón opcional, por defecto 'false'
   });
 
   @override
@@ -25,8 +26,10 @@ class CustomSliverAppBar extends StatelessWidget {
       elevation: 4,
       // CONTROL DEL BOTÓN DE RETROCESO:
       automaticallyImplyLeading: false, // Desactivar el control automático
-      leading: mostrarBotonRetroceso ? _buildBackButton(context) : null, // Mostrar si se requiere
-      
+      leading: mostrarBotonRetroceso
+          ? _buildBackButton(context)
+          : null, // Mostrar si se requiere
+
       centerTitle: false,
       titleSpacing: 16.0,
       title: _buildTitle(),
@@ -40,7 +43,7 @@ class CustomSliverAppBar extends StatelessWidget {
       icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
       onPressed: () {
         // La acción estándar es navegar hacia atrás
-        Navigator.pop(context); 
+        Navigator.pop(context);
       },
     );
   }
