@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/models/actividad_historial.dart';
+import 'package:mobile/screens/detalles_actividad_screen/detalles_actividad_screen.dart'; // <-- Agrega esta importación
 import 'package:mobile/utils/constants.dart';
 
 class ActividadCard extends StatelessWidget {
@@ -13,86 +14,93 @@ class ActividadCard extends StatelessWidget {
     final bool isReprobado = actividad.estaReprobado;
     final bool isEnCurso = actividad.estaEnCurso;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 6,
-            offset: const Offset(0, 3),
+    return GestureDetector(
+      onTap: () {
+        // Usar el mismo patrón que en ViewHistoryButton
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const DetallesActividadScreen(),
+            settings: RouteSettings(
+              arguments: actividad,
+            ),
           ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          // CONTENIDO PRINCIPAL
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(width: 8),
-              _buildLeftImage(),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(14),
-                  child: _buildRightContent(
-                    isAprobado: isAprobado,
-                    isReprobado: isReprobado,
-                    isEnCurso: isEnCurso,
-                    context: context,
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 6,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            // CONTENIDO PRINCIPAL
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(width: 8),
+                _buildLeftImage(),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: _buildRightContent(
+                      isAprobado: isAprobado,
+                      isReprobado: isReprobado,
+                      isEnCurso: isEnCurso,
+                      context: context,
+                    ),
                   ),
                 ),
-              ),
-              // Espacio extra a la derecha para que el botón no tape el texto
-              const SizedBox(width: 40),
-            ],
-          ),
-
-          // BOTÓN DE DESCARGA EN ESQUINA INFERIOR DERECHA
-          if (isAprobado)
-            Positioned(
-              right: 12,
-              bottom: 12,
-              child: IconButton(
-                icon: Icon(Icons.download,
-                    size: 22, color: Theme.of(context).primaryColor),
-                onPressed: () => _descargarConstancia(context),
-              ),
+                // Espacio extra a la derecha para que el botón no tape el texto
+                const SizedBox(width: 40),
+              ],
             ),
-        ],
+
+            // BOTÓN DE DESCARGA EN ESQUINA INFERIOR DERECHA
+            if (isAprobado)
+              Positioned(
+                right: 12,
+                bottom: 12,
+                child: IconButton(
+                  icon: Icon(Icons.download,
+                      size: 22, color: Theme.of(context).primaryColor),
+                  onPressed: () => _descargarConstancia(context),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
 
-  // -------------------------
-  //   IMAGEN IZQUIERDA
-  // -------------------------
   Widget _buildLeftImage() {
-    return ClipRRect(
-      borderRadius: const BorderRadius.only(
-        topLeft: Radius.circular(12),
-        bottomLeft: Radius.circular(12),
+    return Container(
+      width: 100,
+      height: 100,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12), // <-- TODAS las esquinas
+        image: actividad.fotoURL.isNotEmpty
+            ? DecorationImage(
+                image: NetworkImage(actividad.fotoURL),
+                fit: BoxFit.contain, // <-- Cambia cover por contain
+              )
+            : null,
+        color:
+            actividad.fotoURL.isEmpty ? Colors.grey[200] : Colors.transparent,
       ),
-      child: SizedBox(
-        width: 100,
-        height: 120,
-        child: Image.network(
-          actividad.fotoURL.isNotEmpty
-              ? actividad.fotoURL
-              : 'https://via.placeholder.com/150?text=Sin+Imagen',
-          fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => Container(
-            color: Colors.grey[200],
-            child: Icon(
-              Icons.image_not_supported,
-              size: 40,
-              color: Colors.grey[400],
-            ),
-          ),
-        ),
-      ),
+      child: actividad.fotoURL.isEmpty
+          ? const Center(
+              child: Icon(Icons.image_not_supported, color: Colors.grey),
+            )
+          : null,
     );
   }
 
@@ -113,7 +121,7 @@ class ActividadCard extends StatelessWidget {
         Text(
           actividad.nombre,
           style: const TextStyle(
-            fontSize: 17,
+            fontSize: 14,
             fontWeight: FontWeight.bold,
             color: Colors.black87,
           ),

@@ -27,6 +27,10 @@ class ActividadHistorial {
   // Campos del JSON de respuesta
   final String? categoriaNombre;
   final String? periodoNombre;
+  final String? encargadoNombre;
+
+  // Nuevo campo: Horarios de la actividad
+  final List<Map<String, dynamic>> horarios;
 
   ActividadHistorial({
     required this.categoria,
@@ -54,9 +58,22 @@ class ActividadHistorial {
     // Campos del JSON de respuesta
     this.categoriaNombre,
     this.periodoNombre,
+    this.encargadoNombre,
+    // Nuevo campo
+    this.horarios = const [],
   });
 
   factory ActividadHistorial.fromJson(Map<String, dynamic> json) {
+    // Convertir horarios de JSON a lista de mapas
+    final List<Map<String, dynamic>> horariosList = [];
+    if (json['horarios'] is List) {
+      for (var horario in json['horarios']) {
+        if (horario is Map<String, dynamic>) {
+          horariosList.add(horario);
+        }
+      }
+    }
+
     return ActividadHistorial(
       categoria: json['Categoria']?.toString() ?? '',
       nombre: json['Nombre']?.toString() ?? '',
@@ -84,6 +101,9 @@ class ActividadHistorial {
       // Campos del JSON de respuesta
       categoriaNombre: json['CategoriaNombre']?.toString() ?? '',
       periodoNombre: json['PeriodoNombre']?.toString() ?? '',
+      encargadoNombre: json['EncargadoNombre']?.toString() ?? '',
+      // Nuevo campo
+      horarios: horariosList,
     );
   }
 
@@ -92,6 +112,16 @@ class ActividadHistorial {
       Map<String, dynamic> historialJson) {
     final actividadJson = historialJson['actividad'] ?? {};
     final inscripcionJson = historialJson['inscripcion'] ?? {};
+
+    // Obtener horarios del historial
+    final List<Map<String, dynamic>> horariosList = [];
+    if (historialJson['horarios'] is List) {
+      for (var horario in historialJson['horarios']) {
+        if (horario is Map<String, dynamic>) {
+          horariosList.add(horario);
+        }
+      }
+    }
 
     // Obtener el estado de la inscripción, si no existe usar 0 (En curso) como valor por defecto
     final estadoInscripcion = (inscripcionJson['Estado'] ?? 0).toInt();
@@ -123,8 +153,13 @@ class ActividadHistorial {
       // Campos del JSON de respuesta
       categoriaNombre: actividadJson['CategoriaNombre']?.toString() ?? '',
       periodoNombre: actividadJson['PeriodoNombre']?.toString() ?? '',
+      encargadoNombre: actividadJson['EncargadoNombre']?.toString() ?? '',
+      // Nuevo campo
+      horarios: horariosList,
     );
   }
+
+  // --- RESTO DE LOS MÉTODOS EXISTENTES (sin cambios) ---
 
   // Métodos auxiliares para compatibilidad con tu UI existente
   // SIEMPRE usar estadoInscripcion (0: En curso, 1: Aprobado, 2: Reprobado)
@@ -232,6 +267,8 @@ class ActividadHistorial {
     double? valorNumerico,
     String? categoriaNombre,
     String? periodoNombre,
+    String? encargadoNombre,
+    List<Map<String, dynamic>>? horarios,
   }) {
     return ActividadHistorial(
       categoria: categoria,
@@ -257,7 +294,45 @@ class ActividadHistorial {
       valorNumerico: valorNumerico ?? this.valorNumerico,
       categoriaNombre: categoriaNombre ?? this.categoriaNombre,
       periodoNombre: periodoNombre ?? this.periodoNombre,
+      encargadoNombre: encargadoNombre ?? this.encargadoNombre,
+      horarios: horarios ?? this.horarios,
     );
+  }
+
+  String horariosFormateados() {
+    final buffer = StringBuffer();
+
+    for (final h in horarios) {
+      String dia = h['dia'] ?? '';
+      String horaInicio = h['horaInicio'] ?? '';
+      String horaFin = h['horaFin'] ?? '';
+
+      // Normalizar día (lunes → Lunes)
+      dia = dia[0].toUpperCase() + dia.substring(1).toLowerCase();
+
+      // Formato de hora
+      final inicio = _formatearHora(horaInicio);
+      final fin = _formatearHora(horaFin);
+
+      buffer.writeln("$dia: $inicio - $fin");
+    }
+
+    return buffer.toString().trim();
+  }
+
+// Método auxiliar para formatear hora en formato 12 horas con am/pm
+  String _formatearHora(String hora24) {
+    final parts = hora24.split(':');
+    int hour = int.tryParse(parts[0]) ?? 0;
+    int minute = int.tryParse(parts[1]) ?? 0;
+
+    final suffix = hour >= 12 ? 'pm' : 'am';
+    hour = hour % 12;
+    if (hour == 0) hour = 12;
+
+    final minStr = minute.toString().padLeft(2, '0');
+
+    return "$hour:$minStr $suffix";
   }
 
   // Método para comparar basado en el estado de inscripción
@@ -278,5 +353,41 @@ class ActividadHistorial {
       default:
         return '0xFF9E9E9E'; // Gris
     }
+  }
+
+  // Método para convertir a Map (útil para debugging o almacenamiento)
+  Map<String, dynamic> toMap() {
+    return {
+      'categoria': categoria,
+      'nombre': nombre,
+      'descripcion': descripcion,
+      'ubicacion': ubicacion,
+      'cantidadCreditos': cantidadCreditos,
+      'periodo': periodo,
+      'estado': estado,
+      'encargado': encargado,
+      'fechaFin': fechaFin,
+      'departamento': departamento,
+      'cupoActual': cupoActual,
+      'fechaInicio': fechaInicio,
+      'cupoMaximo': cupoMaximo,
+      'pk': pk,
+      'fotoURL': fotoURL,
+      'sk': sk,
+      'desempeno': desempeno,
+      'desempenoParcial': desempenoParcial,
+      'observaciones': observaciones,
+      'estadoInscripcion': estadoInscripcion,
+      'valorNumerico': valorNumerico,
+      'categoriaNombre': categoriaNombre,
+      'periodoNombre': periodoNombre,
+      'encargadoNombre': encargadoNombre,
+      'horarios': horarios,
+    };
+  }
+
+  @override
+  String toString() {
+    return 'ActividadHistorial(nombre: $nombre, estadoInscripcion: $estadoInscripcion, horarios: ${horarios.length})';
   }
 }
