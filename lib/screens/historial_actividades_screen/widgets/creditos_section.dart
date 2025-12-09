@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mobile/screens/widgets/progress_bar.dart';
+import 'package:mobile/screens/shared_widgets/progress_bar.dart';
 import 'package:mobile/view_models/actividad_viewmodel.dart';
 import 'package:provider/provider.dart';
 

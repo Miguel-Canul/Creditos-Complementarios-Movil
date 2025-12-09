@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/screens/shared_widgets/ActivityInfoCard.dart';
 import 'package:mobile/screens/shared_widgets/activity_carousel.dart';
-import 'package:mobile/screens/widgets/ActivityDescriptionWidget.dart';
-import 'package:mobile/screens/widgets/ActivityHeaderWidget.dart';
-import 'package:mobile/screens/widgets/custom_sliver_app_bar.dart';
+import 'package:mobile/screens/shared_widgets/ActivityDescriptionWidget.dart';
+import 'package:mobile/screens/shared_widgets/ActivityHeaderWidget.dart';
+import 'package:mobile/screens/shared_widgets/custom_sliver_app_bar.dart';
 import '../../models/actividad_historial.dart';
 
 class DetallesActividadScreen extends StatelessWidget {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/models/actividad_historial.dart';
-import 'package:mobile/screens/widgets/ActivityInfoItem.dart';
+import 'package:mobile/screens/shared_widgets/ActivityInfoItem.dart';
 
 class ActivityInfoCard extends StatelessWidget {
   final ActividadHistorial actividad;

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mobile/screens/widgets/custom_sliver_app_bar.dart';
+import 'package:mobile/screens/shared_widgets/custom_sliver_app_bar.dart';
 import 'widgets/welcome_message.dart';
 import 'widgets/credits section/credits_section.dart';
 import 'widgets/available activities section/available_activities_section.dart';
