@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mobile/screens/screen_login/confirmacion_registro_screen.dart';
 import 'package:mobile/services/auth_service.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../utils/constants.dart';
 
 class RegistroEstudianteScreen extends StatefulWidget {
@@ -17,8 +18,35 @@ class _RegistroEstudianteScreenState extends State<RegistroEstudianteScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  final _nombreController = TextEditingController();
-  final _apellidoController = TextEditingController();
+
+  // SEPARAR EN NOMBRES Y APELLIDOS
+  final _nombresController = TextEditingController();
+  final _apellidosController = TextEditingController();
+
+  // Lista de carreras
+  final List<String> _carreras = [
+    'Ingeniería en Administración',
+    'Licenciatura en Administración',
+    'Arquitectura',
+    'Licenciatura en Biología',
+    'Licenciatura en Turismo',
+    'Ingeniería Civil',
+    'Contador Público',
+    'Ingeniería Eléctrica',
+    'Ingeniería Electromecánica',
+    'Ingeniería en Gestión Empresarial',
+    'Ingeniería en Desarrollo de Aplicaciones',
+    'Ingeniería en Sistemas Computacionales',
+    'Ingeniería en Tecnologías de la Información y Comunicaciones',
+  ];
+
+  // Lista de semestres
+  final List<String> _semestres =
+      List.generate(12, (index) => 'Semestre ${index + 1}');
+
+  // Variables para los nuevos campos
+  String? _selectedCarrera;
+  String? _selectedSemestre;
 
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
@@ -30,13 +58,28 @@ class _RegistroEstudianteScreenState extends State<RegistroEstudianteScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
-    _nombreController.dispose();
-    _apellidoController.dispose();
+    _nombresController.dispose();
+    _apellidosController.dispose();
     super.dispose();
   }
 
   Future<void> _registrarEstudiante() async {
     if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    // Validar los nuevos campos
+    if (_selectedCarrera == null || _selectedCarrera!.isEmpty) {
+      setState(() {
+        _errorMessage = 'Por favor selecciona tu carrera';
+      });
+      return;
+    }
+
+    if (_selectedSemestre == null || _selectedSemestre!.isEmpty) {
+      setState(() {
+        _errorMessage = 'Por favor selecciona tu semestre';
+      });
       return;
     }
 
@@ -48,54 +91,77 @@ class _RegistroEstudianteScreenState extends State<RegistroEstudianteScreen> {
     try {
       final authService = context.read<AuthService>();
 
-      // IMPORTANTE: Tu AuthService ya maneja tanto número de control
-      // como email completo. Solo necesitamos enviar lo que el usuario ingresó.
       final emailInput = _emailController.text.trim();
-      final nombreCompleto =
-          '${_nombreController.text.trim()} ${_apellidoController.text.trim()}'
-              .trim();
+      final nombre = _nombresController.text.trim();
+      final apellidos = _apellidosController.text.trim();
+
+      // Para Cognito: given_name = nombres, family_name = apellidos
+      final nombreCompletoCognito = '$nombre $apellidos'.trim();
+
+      // Para DynamoDB: guardamos por separado
+      final semestreNumero = _selectedSemestre!.replaceAll('Semestre ', '');
 
       print('=== DATOS DEL REGISTRO ===');
       print('Email input: $emailInput');
-      print('Nombre completo: $nombreCompleto');
+      print('Nombres: $nombre');
+      print('Apellidos: $apellidos');
+      print('Nombre completo (Cognito): $nombreCompletoCognito');
+      print('Carrera: $_selectedCarrera');
+      print('Semestre: $semestreNumero');
 
+      // 1. Registrar en Cognito
       final result = await authService.registro(
-        nombreCompleto,
-        emailInput, // El AuthService se encargará de validar y formatear
+        nombreCompletoCognito, // Este se separará en given_name y family_name
+        emailInput,
         _passwordController.text,
       );
 
-      setState(() => _isLoading = false);
-
       if (result['success'] == true) {
-        // Mostrar mensaje de éxito
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result['message'] ?? 'Registro exitoso'),
-            backgroundColor: Colors.green,
-            duration: const Duration(seconds: 3),
-          ),
+        final emailFormateado = result['email'] ?? emailInput;
+
+        // 2. Registrar en DynamoDB con nombres y apellidos separados
+        final dynamoResult = await authService.registrarEnDynamoDB(
+          email: emailFormateado,
+          nombre: nombre,
+          apellidos: apellidos,
+          carrera: _selectedCarrera!,
+          semestre: semestreNumero,
         );
 
-        // Navegar a pantalla de confirmación si es necesario
-        if (result['requiresConfirmation'] == true) {
-          // Usar el email que retorna el AuthService (ya formateado)
-          final emailFormateado = result['email'] ?? emailInput;
+        setState(() => _isLoading = false);
 
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ConfirmacionRegistroScreen(
-                email: emailFormateado,
-              ),
+        if (dynamoResult['success'] == true) {
+          // Éxito completo
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Registro completo exitoso'),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 3),
             ),
           );
+
+          if (result['requiresConfirmation'] == true) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ConfirmacionRegistroScreen(
+                  email: emailFormateado,
+                ),
+              ),
+            );
+          } else {
+            Navigator.pop(context);
+          }
         } else {
-          // Si no requiere confirmación, volver a login
-          Navigator.pop(context);
+          // Error en DynamoDB
+          setState(() {
+            _errorMessage = dynamoResult['message'] ??
+                'Error al guardar datos en la base de datos';
+          });
         }
       } else {
         setState(() {
+          _isLoading = false;
           _errorMessage = result['message'] ?? 'Error en el registro';
         });
       }
@@ -232,12 +298,12 @@ class _RegistroEstudianteScreenState extends State<RegistroEstudianteScreen> {
       key: _formKey,
       child: Column(
         children: [
-          // Nombre
+          // NOMBRES (given_name en Cognito)
           TextFormField(
-            controller: _nombreController,
+            controller: _nombresController,
             decoration: InputDecoration(
-              labelText: 'Nombre(s)',
-              hintText: '',
+              labelText: 'Nombres',
+              hintText: 'Ej: Marco Antonio',
               prefixIcon: const Icon(Icons.person_outline),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -246,13 +312,14 @@ class _RegistroEstudianteScreenState extends State<RegistroEstudianteScreen> {
                 horizontal: 16,
                 vertical: 14,
               ),
+              helperText: 'Todos tus nombres',
             ),
             validator: (value) {
               if (value == null || value.isEmpty) {
-                return 'Ingresa tu nombre';
+                return 'Ingresa tus nombres';
               }
               if (value.length < 2) {
-                return 'El nombre debe tener al menos 2 caracteres';
+                return 'Debe tener al menos 2 caracteres';
               }
               return null;
             },
@@ -260,12 +327,12 @@ class _RegistroEstudianteScreenState extends State<RegistroEstudianteScreen> {
 
           const SizedBox(height: 16),
 
-          // Apellido
+          // APELLIDOS (family_name en Cognito)
           TextFormField(
-            controller: _apellidoController,
+            controller: _apellidosController,
             decoration: InputDecoration(
-              labelText: 'Apellido(s)',
-              hintText: '',
+              labelText: 'Apellidos',
+              hintText: 'Ej: González Arias',
               prefixIcon: const Icon(Icons.person_outline),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -274,10 +341,11 @@ class _RegistroEstudianteScreenState extends State<RegistroEstudianteScreen> {
                 horizontal: 16,
                 vertical: 14,
               ),
+              helperText: 'Todos tus apellidos',
             ),
             validator: (value) {
               if (value == null || value.isEmpty) {
-                return 'Ingresa tu apellido';
+                return 'Ingresa tus apellidos';
               }
               return null;
             },
@@ -308,10 +376,6 @@ class _RegistroEstudianteScreenState extends State<RegistroEstudianteScreen> {
                 return 'Ingresa tu número de control o email';
               }
 
-              // Validar que sea un formato aceptable:
-              // 1. Solo número de control: L21390305
-              // 2. Email completo: L21390305@chetumal.tecnm.mx
-
               final input = value.trim();
 
               // Si es solo número de control
@@ -334,6 +398,110 @@ class _RegistroEstudianteScreenState extends State<RegistroEstudianteScreen> {
 
               return null;
             },
+          ),
+
+          const SizedBox(height: 16),
+
+          // Carrera - Dropdown
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: Colors.grey.shade400,
+                width: 1,
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: DropdownButtonFormField<String>(
+                value: _selectedCarrera,
+                decoration: InputDecoration(
+                  labelText: 'Carrera',
+                  border: InputBorder.none,
+                  prefixIcon: const Icon(Icons.school_outlined),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 14,
+                  ),
+                ),
+                items: _carreras
+                    .map((carrera) => DropdownMenuItem<String>(
+                          value: carrera,
+                          child: Text(carrera),
+                        ))
+                    .toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedCarrera = value;
+                  });
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Selecciona tu carrera';
+                  }
+                  return null;
+                },
+                hint: const Text('Selecciona tu carrera'),
+                isExpanded: true,
+                icon: const Icon(Icons.arrow_drop_down),
+                iconSize: 24,
+                elevation: 16,
+                style: const TextStyle(fontSize: 16, color: Colors.black87),
+                dropdownColor: Colors.white,
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Semestre - Dropdown
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: Colors.grey.shade400,
+                width: 1,
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: DropdownButtonFormField<String>(
+                value: _selectedSemestre,
+                decoration: InputDecoration(
+                  labelText: 'Semestre',
+                  border: InputBorder.none,
+                  prefixIcon: const Icon(Icons.class_outlined),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 14,
+                  ),
+                ),
+                items: _semestres
+                    .map((semestre) => DropdownMenuItem<String>(
+                          value: semestre,
+                          child: Text(semestre),
+                        ))
+                    .toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedSemestre = value;
+                  });
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Selecciona tu semestre';
+                  }
+                  return null;
+                },
+                hint: const Text('Selecciona tu semestre'),
+                isExpanded: true,
+                icon: const Icon(Icons.arrow_drop_down),
+                iconSize: 24,
+                elevation: 16,
+                style: const TextStyle(fontSize: 16, color: Colors.black87),
+                dropdownColor: Colors.white,
+              ),
+            ),
           ),
 
           const SizedBox(height: 16),
@@ -420,6 +588,28 @@ class _RegistroEstudianteScreenState extends State<RegistroEstudianteScreen> {
               }
               return null;
             },
+          ),
+
+          // Nota sobre los datos
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(Constants.primaryColor).withOpacity(0.05),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: const Color(Constants.primaryColor).withOpacity(0.2),
+                width: 1,
+              ),
+            ),
+            child: const Text(
+              'Nota: Los datos se guardarán después de confirmar tu correo electrónico.',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey,
+              ),
+              textAlign: TextAlign.center,
+            ),
           ),
 
           // Mensaje de error

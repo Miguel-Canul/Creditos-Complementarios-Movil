@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:mobile/models/estudiante.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:amazon_cognito_identity_dart_2/cognito.dart';
+import 'package:http/http.dart' as http;
 
 class AuthService extends ChangeNotifier {
   static final AuthService _instance = AuthService._internal();
@@ -21,6 +22,10 @@ class AuthService extends ChangeNotifier {
   Map<String, dynamic>? _userInfo;
   String? _userRole;
 
+  // URL para registro en DynamoDB
+  static const String _apiGatewayUrl =
+      'https://9o73ac05jk.execute-api.us-west-1.amazonaws.com/alumnoregistro';
+
   /// Getters actualizados
   bool get isAuthenticated => _isAuthenticated;
   String? get userToken => _userToken;
@@ -30,7 +35,7 @@ class AuthService extends ChangeNotifier {
       _userInfo?['name'] ?? _userInfo?['email']?.split('@')[0];
   String? get userEmail => _userInfo?['email'];
 
-// NUEVOS GETTERS PARA LOS DATOS DE COGNITO
+  // NUEVOS GETTERS PARA LOS DATOS DE COGNITO
   String? get userSub =>
       _userInfo?['sub']; // ID único (290939ce-2031-7051-846b-9bd220fa68af)
   String? get userGivenName => _userInfo?['given_name']; // Marco Antonio
@@ -214,6 +219,7 @@ class AuthService extends ChangeNotifier {
     }
   }
 
+  // MÉTODO DE REGISTRO SIN CAMBIOS (NO envía carrera ni semestre a Cognito)
   Future<Map<String, dynamic>> registro(
       String nombreCompleto, String email, String password) async {
     try {
@@ -349,7 +355,87 @@ La contraseña no cumple los requisitos:
     }
   }
 
-// Método auxiliar para analizar errores de parámetros inválidos
+  // NUEVO MÉTODO: Registrar en DynamoDB a través de API Gateway
+  Future<Map<String, dynamic>> registrarEnDynamoDB({
+    required String email,
+    required String nombre,
+    required String apellidos,
+    required String carrera,
+    required String semestre,
+  }) async {
+    try {
+      print('=== REGISTRANDO EN DYNAMODB A TRAVÉS DE API GATEWAY ===');
+      print('📧 Email: $email');
+      print('👤 Nombres: $nombre');
+      print('👤 Apellidos: $apellidos');
+      print('🎓 Carrera: $carrera');
+      print('📚 Semestre: $semestre');
+
+      // Extraer número de control del email
+      String numeroControl = email.split('@').first.toUpperCase();
+
+      // Convertir semestre a entero
+      int semestreInt;
+      try {
+        semestreInt = int.parse(semestre);
+        if (semestreInt < 1) semestreInt = 1;
+        if (semestreInt > 12) semestreInt = 12;
+      } catch (e) {
+        print('⚠️ Error al parsear semestre: $e, usando 1 por defecto');
+        semestreInt = 1;
+      }
+
+      // Preparar datos para la API
+      final Map<String, dynamic> requestData = {
+        'email': email,
+        'nombre': nombre,
+        'apellidos': apellidos,
+        'numeroControl': numeroControl,
+        'carrera': carrera,
+        'semestre': semestreInt,
+      };
+
+      print('📤 Enviando datos a API Gateway:');
+      print(json.encode(requestData));
+
+      // Llamar a la API Gateway
+      final response = await http.post(
+        Uri.parse(_apiGatewayUrl),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: json.encode(requestData),
+      );
+
+      print('📥 Respuesta de API Gateway:');
+      print('   - Status: ${response.statusCode}');
+      print('   - Body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        return {
+          'success': true,
+          'message': 'Registro en base de datos completado exitosamente',
+          'data': responseData,
+        };
+      } else {
+        return {
+          'success': false,
+          'message':
+              'Error al registrar en base de datos: ${response.statusCode}',
+          'statusCode': response.statusCode,
+        };
+      }
+    } catch (e) {
+      print('❌ ERROR al registrar en DynamoDB: $e');
+      return {
+        'success': false,
+        'message': 'Error de conexión al registrar en base de datos: $e',
+      };
+    }
+  }
+
+  // Método auxiliar para analizar errores de parámetros inválidos
   String _analizarErrorParametrosInvalidos(String? mensajeError) {
     if (mensajeError == null) {
       return 'Parámetros inválidos. Verifica los datos ingresados.';
@@ -402,7 +488,7 @@ La contraseña no cumple los requisitos:
     }
   }
 
-// Método para reenviar código
+  // Método para reenviar código
   Future<bool> reenviarCodigoConfirmacion(String email) async {
     try {
       print('🔄 Reenviando código de confirmación para: $email');
