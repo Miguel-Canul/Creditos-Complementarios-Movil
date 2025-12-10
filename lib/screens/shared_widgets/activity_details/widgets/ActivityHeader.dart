@@ -27,10 +27,6 @@ class ActivityHeader extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-        Text(
-          "(${actividad.categoria})",
-          style: TextStyle(color: Colors.grey[700]),
-        ),
       ],
     );
   }

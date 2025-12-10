@@ -25,20 +25,25 @@ class ActivityScheduleCardMine extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-
-          Text(
-            "Inicio: ${actividad.periodo}",
-            style: const TextStyle(fontSize: 16), // <-- Tamaño aumentado
-          ),
-
-          const SizedBox(height: 8),
-
-          if (actividad.periodo != null &&
-              actividad.periodo!.isNotEmpty &&
-              actividad.periodo!.toLowerCase() != "fin")
-            Text(
-              "Fin: ${actividad.periodo}",
-              style: const TextStyle(fontSize: 16), // <-- Tamaño aumentado
+          if (actividad.fechaFin.isNotEmpty)
+            Column(
+              children: [
+                Text(
+                  "Desde: ${actividad.fechaInicio}",
+                  style: const TextStyle(fontSize: 16),
+                ),
+                Text(
+                  "Hasta: ${actividad.fechaFin}",
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ],
+            )
+          else
+            Center(
+              child: Text(
+                actividad.fechaInicio,
+                style: const TextStyle(fontSize: 16),
+              ),
             ),
 
           const SizedBox(height: 20),
@@ -51,26 +56,48 @@ class ActivityScheduleCardMine extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Bucle for de colección para generar Text por cada horario
-              for (final horario in actividad.horarios)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 4.0),
-                  child: Text(
-                    // Formatea la salida directamente
-                    "${horario.dia[0].toUpperCase()}${horario.dia.substring(1).toLowerCase()}: ${horario.horaInicio} - ${horario.horaFin}",
-                    style: const TextStyle(fontSize: 14),
+          if (actividad.fechaFin.isNotEmpty)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Bucle for de colección para generar Text por cada horario
+                for (final horario in actividad.horarios)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 4.0),
+                    child: Text(
+                      // Formatea la salida directamente
+                      "${horario.dia[0].toUpperCase()}${horario.dia.substring(1).toLowerCase()}: ${horario.horaInicio} - ${horario.horaFin}",
+                      style: const TextStyle(fontSize: 14),
+                    ),
                   ),
-                ),
-              // Muestra mensaje si la lista está vacía
-              if (actividad.horarios.isEmpty)
-                const Text('Horarios no disponibles',
-                    style: TextStyle(fontSize: 14)),
-            ],
-          )
+                // Muestra mensaje si la lista está vacía
+                if (actividad.horarios.isEmpty)
+                  const Text('Horarios no disponibles',
+                      style: TextStyle(fontSize: 14)),
+              ],
+            )
+          else
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Bucle for de colección para generar Text por cada horario
+                for (final horario in actividad.horarios)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 4.0),
+                    child: Center(
+                      child: Text(
+                        // Formatea la salida directamente
+                        "${horario.horaInicio} - ${horario.horaFin}",
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                    ),
+                  ),
+                // Muestra mensaje si la lista está vacía
+                if (actividad.horarios.isEmpty)
+                  const Text('Horarios no disponibles',
+                      style: TextStyle(fontSize: 14)),
+              ],
+            )
         ],
       ),
     );
