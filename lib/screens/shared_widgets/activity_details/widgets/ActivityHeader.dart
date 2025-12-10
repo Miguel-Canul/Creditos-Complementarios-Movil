@@ -20,11 +20,13 @@ class ActivityHeader extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 10),
-        Text(
-          actividad.nombre,
-          style: const TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
+        Center(
+          child: Text(
+            actividad.nombre,
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ],

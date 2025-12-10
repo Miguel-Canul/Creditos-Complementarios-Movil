@@ -9,6 +9,7 @@ class InscripcionSuccessModal {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
+          backgroundColor: Colors.white,
           title: const Center(child: Text('¡Inscripción Exitosa!')),
           content: const Text(
             'Te has inscrito con éxito en la actividad.',

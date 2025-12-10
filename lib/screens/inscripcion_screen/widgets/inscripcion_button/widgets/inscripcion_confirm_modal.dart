@@ -9,6 +9,7 @@ class InscripcionConfirmModal {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          backgroundColor: Colors.white,
           title: const Center(child: Text('Confirmar inscripción')),
           content: const Text('¿Inscribirse en esta actividad?'),
           actions: <Widget>[

@@ -16,6 +16,7 @@ class InscripcionErrorModal {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          backgroundColor: Colors.white,
           title: Center(child: Text(titulo)),
           content: Text(
             mensaje,
