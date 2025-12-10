@@ -67,7 +67,7 @@ class ActivityScheduleCardMine extends StatelessWidget {
                     padding: const EdgeInsets.only(bottom: 4.0),
                     child: Text(
                       // Formatea la salida directamente
-                      "${horario.dia[0].toUpperCase()}${horario.dia.substring(1).toLowerCase()}: ${horario.horaInicio} - ${horario.horaFin}",
+                      "${horario.dia[0].toUpperCase()}${horario.dia.substring(1).toLowerCase()}: ${DateFormatter.formatearHoraAmPm(horario.horaInicio)} - ${DateFormatter.formatearHoraAmPm(horario.horaFin)}",
                       style: const TextStyle(fontSize: 14),
                     ),
                   ),
@@ -88,7 +88,7 @@ class ActivityScheduleCardMine extends StatelessWidget {
                     child: Center(
                       child: Text(
                         // Formatea la salida directamente
-                        "${horario.horaInicio} - ${horario.horaFin}",
+                        "${DateFormatter.formatearHoraAmPm(horario.horaInicio)} - ${DateFormatter.formatearHoraAmPm(horario.horaFin)}",
                         style: const TextStyle(fontSize: 14),
                       ),
                     ),
