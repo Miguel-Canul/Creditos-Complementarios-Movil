@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mobile/screens/inscripcion_screen/widgets/inscripcion_button.dart';
+import 'package:mobile/screens/inscripcion_screen/widgets/inscripcion_button/inscripcion_button.dart';
 import 'package:mobile/screens/shared_widgets/activity_details/activity_details.dart';
 import 'package:mobile/screens/shared_widgets/custom_sliver_app_bar.dart';
 import '../../models/actividad_inscripcion.dart';
