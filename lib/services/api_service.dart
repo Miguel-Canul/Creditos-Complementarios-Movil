@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:mobile/models/historial_response.dart';
 import '../utils/constants.dart';
-import '../models/Actividad_inscripcion.dart';
+import '../models/actividad_inscripcion.dart';
 
 class ApiService {
   static const String baseURL = Constants.baseURL;

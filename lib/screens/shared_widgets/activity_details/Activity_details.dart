@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:mobile/screens/shared_widgets/ActivityDescriptionWidget.dart';
-import 'package:mobile/screens/shared_widgets/ActivityHeaderWidget.dart';
-import 'package:mobile/screens/shared_widgets/activity_carousel.dart';
-import '../../models/actividad_historial.dart';
+import 'package:mobile/models/actividad_inscripcion.dart';
+import 'package:mobile/screens/shared_widgets/activity_details/widgets/ActivityDescriptionWidget.dart';
+import 'package:mobile/screens/shared_widgets/activity_details/widgets/ActivityHeader.dart';
+import 'package:mobile/screens/shared_widgets/activity_details/widgets/activityCarousel/activity_carousel.dart';
 
 // Clases y Objetos: Pequeñas, Principio de Responsabilidad Única
 // Nombres Significativos: Contenido informativo de la actividad.
-class ActivityInfoSection extends StatelessWidget {
-  final ActividadHistorial actividad;
+class ActivityDetails extends StatelessWidget {
+  final ActividadInscripcion actividad;
 
-  const ActivityInfoSection({
+  const ActivityDetails({
     super.key,
     required this.actividad,
   });
@@ -25,17 +25,17 @@ class ActivityInfoSection extends StatelessWidget {
           const SizedBox(height: 16),
 
           /// HEADER (foto + nombre + categoría)
-          ActivityHeaderWidget(actividad: actividad),
+          ActivityHeader(actividad: actividad),
 
           const SizedBox(height: 20),
 
           /// DESCRIPCIÓN
-          ActivityDescriptionWidget(descripcion: actividad.descripcion),
+          ActivityDescription(descripcion: actividad.descripcion),
 
           const SizedBox(height: 20),
 
           /// CARRUSEL (Periodo + Horario)
-          ActivityCarousel(actividad: actividad),
+          ActivityCarouselMine(actividad: actividad),
         ],
       ),
     );

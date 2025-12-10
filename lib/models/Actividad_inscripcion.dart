@@ -9,6 +9,7 @@ class ActividadInscripcion {
   final String categoria;
   final String periodo;
   final String encargado;
+  final int cupoActual;
   final int cupoMaximo;
   final String ubicacion;
   final List<Horario> horarios; // Lista de horarios usando el modelo anterior
@@ -22,6 +23,7 @@ class ActividadInscripcion {
     required this.categoria,
     required this.periodo,
     required this.encargado,
+    required this.cupoActual,
     required this.cupoMaximo,
     required this.ubicacion,
     required this.horarios,
@@ -42,6 +44,7 @@ class ActividadInscripcion {
       categoria: json['categoria'] as String,
       periodo: json['periodo'] as String,
       encargado: json['encargado'] as String,
+      cupoActual: json['cupoActual'] as int,
       cupoMaximo: json['cupoMaximo'] as int,
       ubicacion: json['ubicacion'] as String,
       horarios: horarios,

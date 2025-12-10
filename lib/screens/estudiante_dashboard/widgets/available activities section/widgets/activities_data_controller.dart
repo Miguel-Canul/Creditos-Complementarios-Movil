@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import '../../../../../utils/constants.dart';
 import '../../../../../services/api_service.dart';
-import '../../../../../models/Actividad_inscripcion.dart';
+import '../../../../../models/actividad_inscripcion.dart';
 import 'category_carousel_section.dart'; // Nuevo widget de carrusel
 
 class ActivitiesDataController extends StatefulWidget {

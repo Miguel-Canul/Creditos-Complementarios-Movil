@@ -1,7 +1,7 @@
 // screens/estudiante_dashboard/widgets/category_carousel_section.dart
 
 import 'package:flutter/material.dart';
-import '../../../../../models/Actividad_inscripcion.dart';
+import '../../../../../models/actividad_inscripcion.dart';
 import 'activity_card.dart'; // Nuevo widget de tarjeta
 
 class CategoryCarouselSection extends StatelessWidget {
