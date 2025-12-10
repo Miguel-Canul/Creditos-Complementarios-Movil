@@ -14,7 +14,7 @@ class Constants {
   static const dangerColor = 0xFFdc3545; // Rojo peligro
 
   //Dias de la semana
-  static const List<String> diasSemana = [
+  static const List<String> dias = [
     'Domingo',
     'Lunes',
     'Martes',

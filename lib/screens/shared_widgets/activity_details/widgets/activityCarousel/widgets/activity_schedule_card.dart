@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/models/actividad_inscripcion.dart';
+import 'package:mobile/utils/data_formatter.dart';
 
 class ActivityScheduleCardMine extends StatelessWidget {
   final ActividadInscripcion actividad;
@@ -29,11 +30,11 @@ class ActivityScheduleCardMine extends StatelessWidget {
             Column(
               children: [
                 Text(
-                  "Desde: ${actividad.fechaInicio}",
+                  "Desde: ${DateFormatter.formatearFecha(actividad.fechaInicio)}",
                   style: const TextStyle(fontSize: 16),
                 ),
                 Text(
-                  "Hasta: ${actividad.fechaFin}",
+                  "Hasta: ${DateFormatter.formatearFecha(actividad.fechaFin)}",
                   style: const TextStyle(fontSize: 16),
                 ),
               ],
@@ -41,7 +42,7 @@ class ActivityScheduleCardMine extends StatelessWidget {
           else
             Center(
               child: Text(
-                actividad.fechaInicio,
+                DateFormatter.formatearFecha(actividad.fechaInicio),
                 style: const TextStyle(fontSize: 16),
               ),
             ),
