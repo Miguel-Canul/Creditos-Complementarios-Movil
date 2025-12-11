@@ -1,7 +1,8 @@
 // screens/estudiante_dashboard/widgets/activity_card.dart
 
 import 'package:flutter/material.dart';
-import '../../../../../models/Actividad_inscripcion.dart';
+import 'package:mobile/screens/inscripcion_screen/inscripcion_screen.dart';
+import '../../../../../models/actividad_inscripcion.dart';
 import '../../../../../utils/constants.dart';
 
 class ActivityCard extends StatelessWidget {
@@ -16,14 +17,14 @@ class ActivityCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        // Lógica de navegación a la pantalla de detalle
-        // Navigator.push(
-        //   context,
-        //   MaterialPageRoute(
-        //     builder: (context) => DetalleActividadScreen(actividad: actividad),
-        //   ),
-        // );
-        print('Clic en actividad: ${actividad.nombre}. Objeto completo pasado.');
+        // Lógica de navegación a la nueva pantalla de inscripción
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                InscripcionScreen(actividad: actividad),
+          ),
+        );
       },
       child: Container(
         width: 100, // Ancho fijo para el carrusel
@@ -31,7 +32,7 @@ class ActivityCard extends StatelessWidget {
         child: Column(
           children: [
             _buildActivityAvatar(actividad.fotoUrl),
-            const SizedBox(height: 8), 
+            const SizedBox(height: 8),
             _buildActivityTitle(actividad.nombre),
           ],
         ),

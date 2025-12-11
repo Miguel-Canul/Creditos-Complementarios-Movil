@@ -1,7 +1,7 @@
 // screens/estudiante_dashboard/widgets/category_carousel_section.dart
 
 import 'package:flutter/material.dart';
-import '../../../../../models/Actividad_inscripcion.dart';
+import '../../../../../models/actividad_inscripcion.dart';
 import 'activity_card.dart'; // Nuevo widget de tarjeta
 
 class CategoryCarouselSection extends StatelessWidget {
@@ -30,7 +30,7 @@ class CategoryCarouselSection extends StatelessWidget {
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           _buildSubsectionTitle(titulo),
           const SizedBox(height: 12),
@@ -57,14 +57,14 @@ class CategoryCarouselSection extends StatelessWidget {
     final int baseCount = activities.length;
 
     return SizedBox(
-      height: 120, 
+      height: 120,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: baseCount,
         itemBuilder: (context, index) {
           final ActividadInscripcion actividad = activities[index];
           // Delega la creación del item a ActivityCard
-          return ActivityCard(actividad: actividad); 
+          return ActivityCard(actividad: actividad);
         },
       ),
     );

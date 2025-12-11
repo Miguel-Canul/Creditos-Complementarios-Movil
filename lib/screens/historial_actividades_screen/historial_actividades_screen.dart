@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/screens/shared_widgets/custom_sliver_app_bar.dart';
 import 'package:provider/provider.dart';
 import '../../view_models/actividad_viewmodel.dart';
-import '../widgets/custom_sliver_app_bar.dart';
+
 import './widgets/creditos_section.dart';
 import './widgets/actividades_list_section.dart';
 

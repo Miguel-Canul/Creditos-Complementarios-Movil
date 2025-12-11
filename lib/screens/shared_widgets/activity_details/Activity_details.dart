@@ -1,0 +1,43 @@
+import 'package:flutter/material.dart';
+import 'package:mobile/models/actividad_inscripcion.dart';
+import 'package:mobile/screens/shared_widgets/activity_details/widgets/ActivityDescriptionWidget.dart';
+import 'package:mobile/screens/shared_widgets/activity_details/widgets/ActivityHeader.dart';
+import 'package:mobile/screens/shared_widgets/activity_details/widgets/activityCarousel/activity_carousel.dart';
+
+// Clases y Objetos: Pequeñas, Principio de Responsabilidad Única
+// Nombres Significativos: Contenido informativo de la actividad.
+class ActivityDetails extends StatelessWidget {
+  final ActividadInscripcion actividad;
+
+  const ActivityDetails({
+    super.key,
+    required this.actividad,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Retorna el contenido principal con su Padding de alineación.
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 16),
+
+          /// HEADER (foto + nombre + categoría)
+          ActivityHeader(actividad: actividad),
+
+          const SizedBox(height: 20),
+
+          /// DESCRIPCIÓN
+          ActivityDescription(descripcion: actividad.descripcion),
+
+          const SizedBox(height: 20),
+
+          /// CARRUSEL (Periodo + Horario)
+          ActivityCarouselMine(actividad: actividad),
+        ],
+      ),
+    );
+  }
+}

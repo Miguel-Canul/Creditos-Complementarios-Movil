@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/models/actividad_historial.dart';
-import 'package:mobile/screens/widgets/ActivityInfoCard.dart';
-import 'activity_schedule_card.dart';
-import 'activity_page_indicator.dart';
+import 'package:mobile/screens/shared_widgets/ActivityInfoCard.dart';
+import 'package:mobile/screens/shared_widgets/activity_page_indicator.dart';
+import 'package:mobile/screens/shared_widgets/activity_schedule_card.dart';
 
 class ActivityCarousel extends StatelessWidget {
   final ActividadHistorial actividad;
